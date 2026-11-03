@@ -13,7 +13,9 @@ header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:
 header h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.05em}
 header .sp{flex:1}
 button,select,input[type=number]{background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
-button:hover{border-color:var(--acc)}
+@media (hover:hover){button:hover{border-color:var(--acc)}}
+button,select{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+select{max-width:100%}
 button.on{background:#0d3b52;border-color:var(--acc)}
 #startBtn{background:#1b5e20;border-color:#2e7d32;font-weight:600}
 #startBtn.running{background:var(--panel2);border-color:var(--line);font-weight:400}
@@ -21,7 +23,7 @@ main{display:grid;grid-template-columns:300px 110px 1fr;gap:12px;padding:12px 16
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
 .card h2{font-size:12px;color:var(--sub);margin:0 0 8px;font-weight:500;letter-spacing:.08em}
 #gauge{width:100%;height:auto;display:block}
-.notch{display:flex;flex-direction:column;gap:3px}
+.notch{display:flex;flex-direction:column;gap:3px;touch-action:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}   /* 指でなぞって段を変えるので、この列ではスクロール・長押しメニューを止める */
 .notch div{padding:5px 0;text-align:center;border-radius:5px;background:var(--panel2);color:var(--sub);cursor:pointer;font-weight:600;font-size:13px;user-select:none}
 .notch div.p.cur{background:var(--pw);color:#000}
 .notch div.n.cur{background:#90a4ae;color:#000}
@@ -50,6 +52,14 @@ details summary{cursor:pointer;color:var(--sub)}
 .kbd{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11px;color:var(--sub)}
 #msg{color:var(--pw);font-size:12px;margin-left:8px}
 @media (max-width:900px){main{grid-template-columns:1fr 90px}main>.ro-card{grid-column:1/-1}}
+@media (max-width:600px){
+header{gap:8px;padding:8px 10px}header h1{font-size:15px;flex:1 1 100%}header .sp{display:none}
+#startBtn{order:-1;flex:1 1 100%;padding:10px;font-size:16px}#presetSel,#posSel{flex:1 1 140px;min-width:0}#demoBtn,#recBtn{flex:1 1 auto}
+main{grid-template-columns:1fr 76px;gap:8px;padding:8px 10px;align-items:start}
+.card{padding:10px}.notch div{padding:8px 0;font-size:14px}
+.ro{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ro .v b{font-size:18px}#modeBadge{font-size:18px}
+.mix{grid-template-columns:1fr}.tg{padding:6px 12px}
+}
 </style>
 </head>
 <body>
@@ -1889,8 +1899,10 @@ let lastMsg = null, posKey = 'cabin', listenerX = 0;
 const eng = { ctx: null, node: null, core: null, ready: false };
 async function startAudio() {
   if (eng.ctx) { await eng.ctx.resume(); return; }
+  if (navigator.audioSession) navigator.audioSession.type = 'playback';   // iPhone: 消音スイッチがオンでも鳴らす（Safari 16.4+）
   const ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
   eng.ctx = ctx;
+  ctx.onstatechange = () => { const r = ctx.state === 'running'; $('startBtn').textContent = r ? '■ 消音' : '▶ 音を出す'; $('startBtn').classList.toggle('running', r); };   // iPhone は電話・画面ロックで interrupted になる
   let node;
   try {
     const src = CORE_SRC + `
@@ -2016,7 +2028,11 @@ function runDemo(dt) {
 /* ---------- UI ---------- */
 const NOTCHES = [[5, 'P5', 'p'], [4, 'P4', 'p'], [3, 'P3', 'p'], [2, 'P2', 'p'], [1, 'P1', 'p'], [0, 'N', 'n'],
   [-1, 'B1', 'b'], [-2, 'B2', 'b'], [-3, 'B3', 'b'], [-4, 'B4', 'b'], [-5, 'B5', 'b'], [-6, 'B6', 'b'], [-7, 'B7', 'b'], [-8, 'EB', 'eb']];
-NOTCHES.forEach(([v, l, c]) => { const d = document.createElement('div'); d.textContent = l; d.className = c; d.dataset.v = v; d.onclick = () => { stopDemo(); setNotch(v); }; $('notch').appendChild(d); });
+NOTCHES.forEach(([v, l, c]) => { const d = document.createElement('div'); d.textContent = l; d.className = c; d.dataset.v = v; $('notch').appendChild(d); });
+{ const nb = $('notch'); let drag = null;   // タップ＋指でなぞって段を変える（スマホ）。マウスのドラッグでも同じ
+  const at = e => { const d = document.elementFromPoint(e.clientX, e.clientY); if (d && d.parentNode === nb && +d.dataset.v !== st.notch) setNotch(+d.dataset.v); };
+  nb.onpointerdown = e => { if (drag !== null || (e.pointerType === 'mouse' && e.button !== 0)) return; drag = e.pointerId; stopDemo(); nb.setPointerCapture(e.pointerId); at(e); };   // 最初の指だけ追う。右・中クリックは無視
+  nb.onpointermove = e => { if (e.pointerId === drag) at(e); }; nb.onpointerup = nb.onpointercancel = nb.onlostpointercapture = e => { if (e.pointerId === drag) drag = null; }; }
 function setNotch(v) { st.notch = Math.max(-8, Math.min(5, v)); document.querySelectorAll('#notch div').forEach(d => d.classList.toggle('cur', +d.dataset.v === st.notch)); }
 setNotch(0);
 function stopDemo() { demo = null; $('demoBtn').classList.remove('on'); }
@@ -2070,7 +2086,7 @@ MIX.forEach(([k, label, def]) => {
 });
 $('startBtn').onclick = async () => {
   if (eng.ctx && eng.ctx.state === 'running') { await eng.ctx.suspend(); $('startBtn').textContent = '▶ 音を出す'; $('startBtn').classList.remove('running'); return; }
-  await startAudio(); $('startBtn').textContent = '■ 消音'; $('startBtn').classList.add('running');
+  await startAudio(); const r = eng.ctx.state === 'running'; $('startBtn').textContent = r ? '■ 消音' : '▶ 音を出す'; $('startBtn').classList.toggle('running', r);   // iPhone は resume しても interrupted のまま返ることがある
 };
 $('demoBtn').onclick = () => { if (demo) return stopDemo(); demo = { ph: 0, t: 0 }; $('demoBtn').classList.add('on'); if (!eng.ready) $('startBtn').click(); };
 let recorder = null;
@@ -2079,7 +2095,7 @@ $('recBtn').onclick = () => {
   if (recorder) { recorder.stop(); return; }
   const chunks = []; recorder = new MediaRecorder(eng.rec.stream);
   recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType })); a.download = `${preset.name.replace(/[\\/:*?"<>| ]/g, '_')}.webm`; a.click(); recorder = null; $('recBtn').classList.remove('on'); $('recBtn').textContent = '● 録音'; };
+  recorder.onstop = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(chunks, { type: recorder.mimeType })); a.download = `${preset.name.replace(/[\\/:*?"<>| ]/g, '_')}.${/mp4/.test(recorder.mimeType) ? 'm4a' : /ogg/.test(recorder.mimeType) ? 'ogg' : 'webm'}`; a.click(); recorder = null; $('recBtn').classList.remove('on'); $('recBtn').textContent = '● 録音'; };
   recorder.start(); $('recBtn').classList.add('on'); $('recBtn').textContent = '■ 録音停止';
 };
 $('jsonExport').onclick = () => { $('json').value = JSON.stringify(preset, null, 1); $('jsonMsg').textContent = '書き出しました'; };
@@ -2250,7 +2266,8 @@ const specImg = { col: null };
 function drawSpec() {
   if (!eng.ready) return;
   const now = performance.now(), c = $('spec'), g = c.getContext('2d'), W = c.width, H = c.height;
-  const step = Math.max(1, Math.min(60, Math.round((now - (specImg.t || now - 16)) / 1000 * 150))); specImg.t = now;   // 150px/秒で一定速度
+  specImg.acc = Math.min(60, (specImg.acc || 0) + (now - (specImg.t || now - 16)) / 1000 * 150 * W / 1600); specImg.t = now;   // 一定速度（幅1600pxで150px/秒＝約11秒分）。端数を持ち越すので画面のリフレッシュレートに依らない
+  const step = Math.floor(specImg.acc); if (step < 1) return; specImg.acc -= step;
   eng.an.getByteFrequencyData(eng.fbuf);
   g.drawImage(c, step, 0, W - step, H, 0, 0, W - step, H);
   const binHz = eng.ctx.sampleRate / eng.an.fftSize, img = g.createImageData(step, H);
@@ -2294,6 +2311,8 @@ let lastFrame = 0;
 function draw() { lastFrame = performance.now(); drawGauge(); drawPatternMarker(); drawSpec(); drawReadout(); }
 function frame() { draw(); requestAnimationFrame(frame); }
 setInterval(() => { if (performance.now() - lastFrame > 250) draw(); }, 100);   // rAFが止まる環境向けの保険
+{ const mq = matchMedia('(max-width:600px)'), fit = () => { const w = mq.matches ? 560 : 1600; if ($('pattern').width !== w) { $('pattern').width = $('spec').width = w; if (preset) drawPattern(); } };   // スマホ: 横を詰めて縦と文字を大きく見せる（1600pxのままだと高さ30〜50px に潰れる）。画面の回転でも直す
+  fit(); mq.addEventListener ? mq.addEventListener('change', fit) : mq.addListener(fit); }
 selectPreset('e233');
 requestAnimationFrame(frame);
 </script>
