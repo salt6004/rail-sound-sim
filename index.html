@@ -892,6 +892,7 @@ class RailCore {
  * セグメント: {f:開始インバータ周波数Hz, m:'a'(非同期)|'s'(同期)|'w3'(広域3パルス)|'1p',
  *              n:同期パルス数, fc:数値|[開始,終了](区間内で f1 に比例して変化), steps:[[f1,fc],..](段階キャリア),
  *              rnd:ランダム変調幅Hz, lv:2|3(レベル数。省略時はプリセットの lv)}
+ * poles（プリセット）: 主電動機の極数（省略=4。f1=回転数×極数/2。16000系の PMSM は6）
  * segs=力行用、bsegs=回生ブレーキ用（無ければ segs を流用）。
  * fRand:[下限,上限] … 力行・回生とも、その境界を跨ぐたびに切替点を抽選（f は表示用の代表値）。
  *   範囲±1Hz の外に出るまで値を固定するヒステリシス付き（同じ境界を行き来しない）。回生側はブレーキ投入ごとにも抽選
@@ -1000,13 +1001,22 @@ const PRESETS = {
     note: '2026-11-03: 歯車比を 14:85→14:99(7.07) に直した（旧値は推定で、同じ速度での f1 が約14%低く、切替点の速度・歯車音の高さがずれていた）。最高速度100→110km/h、起動加速度2.3→2.5km/h/s。' +
       '実車録音[Y2]: 発車直後は 2fc≈1050Hz(fc 525Hz)の線が主で fc 帯は聞こえない、f1≈33Hz から 2fc が上がり始める(名鑑の 525Hz→上昇と一致)、速度に比例する 58fr の線(回転子スロット高調波、歯車14frの約4.1倍)が 2fc の約−4dB で目立つ → slots 58・slotLv 0.12。600番台の録音[Y3]でも 2fc は f1≈33Hz(発車約12秒後)から上がり始め、約60Hzで同期へ移り、その間の加速度は約2.4km/h/s(新しい歯車比で計算。旧14:85だと2.8になり合わない)。高速域は 2f1 の線が最も強い(周囲より12〜18dB上)。' +
       '1Pに移らず広域3Pで終わる（広域3Pを全電圧点として扱う）。9P/5Pは名鑑の新種パルス(HOP)だが、キャリア比較の同期パルスで近似(hop:1は印のみ)' },
-  metro16000: { name: '東京メトロ16000系 (東芝IGBT・PMSM)', maker: '東芝', device: 'IGBT', lv: 2, motor: 'PMSM', units: 2, ctrl: '1C1M×4',
-    gear: [14, 109], wheel: 0.86, accel: 3.3, vmax: 110, decel: 4.0, fade: 0, pureElec: 1,
-    segs: [{ f: 0, m: 'a', fc: 1000, rnd: 300 }, { f: 80, m: '1p' }],
+  /* ---- 16000系1〜3次車（2026-11-04 作り直し）: 主電動機 MM-S5A（東芝 SEA-535、PMSM 205kW、880V・168A・115Hz・2300rpm → 6極）[W]。
+   *  変調パターンは実車録音[Y4]のFFTから読んだ（名鑑・VvvfGeeks に16000系の掲載なし）。6極なので f1 = 3·回転数（poles:6。4極の既定だと f1 が2/3になり切替点の速度がずれる） */
+  metro16000: { name: '東京メトロ16000系1〜3次車 (東芝IGBT・PMSM)', maker: '東芝', device: 'IGBT', lv: 2, motor: 'PMSM', poles: 6, units: 2, ctrl: '1C1M×4',
+    gear: [14, 109], wheel: 0.86, accel: 3.3, vmax: 110, decel: 3.7, fade: 0, pureElec: 1,
+    slotLv: 0,   // PMSM は回転子にスロットが無い（録音にも 44fr 系の線なし。出ていたのは歯車14fr系と 2f1 の倍数）
+    segs: [{ f: 0, m: 'a', fc: 1000 }, { f: 116, m: '1p' }],
     modes: [[700, 10, 1], [1150, 7, 0.6], [1800, 10, 0.5], [3000, 12, 0.3], [4400, 5, 0.18]],
-    bconf: '低', bnote: '資料なし→力行と同じ(仮)。純電気ブレーキ[W]',
-    conf: '仕様は高 / 変調パターンは資料なしの仮置き(低)', src: '[W] trainmotorsound.com',
-    note: '1〜3次車=東芝IGBT。PMSMなのですべり0、1C1Mでモータごとに周波数がわずかにずれる。非同期音が大きく擦れるような音(定性情報)。録音を走行音アナライザーにかけてJSON読込で上書き推奨' },
+    bsegs: [{ f: 0, m: 'a', fc: 1000 }, { f: 116, m: '1p' }],
+    bconf: '中(録音2回の読取り。1P→非同期の切替は f1≈111〜123Hz で、速度の外挿が粗く1点に絞れない)',
+    bnote: '1P→約116Hzで非同期1000Hzへ、そのまま停止直前(f1≈10Hz)まで非同期で回生＝純電気ブレーキ[W][Y4]。切替点は力行と同じとした',
+    conf: '仕様は高(MM-S5A 205kW・6極・歯車比109:14・1C1M×4・起動加速度3.3・常用減速度3.7は[W]) / 非同期1000Hz・1P切替は録音[Y4]の読取り(中) / 車輪径・共振modes・2群(units)は推定',
+    src: '[W] ja.wikipedia 東京メトロ16000系電車 [Y4]YouTube wPsUFoOVOXI(16112F 2次車 東芝、客室) trainmotorsound.com/eidan.html',
+    note: '東芝2レベルIGBT(3300V-800A)・1C1M×4群(2in1)、16101F〜16116F。4次車(16117F〜)以降は三菱製。' +
+      '録音[Y4]をブラウザ内でFFT(2026-11-04、音声は保存せず): 発車から 1000/2000/3000/4000Hz を中心に側帯が開く(fc±3f1・2fc±2f1・3fc±3f1・4fc±2f1)→ 非同期 fc≈1000Hz 一定。線は細くランダム変調なし(旧値 rnd300 は誤り)。' +
+      '加速中の f1≈114Hz(約48km/h)までキャリアの線があり、f1≈122Hzで消え以後は f1 の倍数の線だけ(同期多パルスの線は見えない)→ 1P 116Hz(定格115Hzとほぼ一致)。' +
+      '速度は歯車の線(14fr=4.67f1、その2〜4倍)と磁気音の 2f1・4f1・6f1・12f1 の比から 6極と確かめた(加速約3.0・減速約2.7〜3.0km/h/s、ATO運転)。最も強いのは歯車14fr、次いで 6f1・2f1（コアの磁気うなりは 2f1・4f1 だけで、6f1 は未対応）。非常減速度4.7[W]は、モデルの非常＝常用×1.1(4.1)の共通の作りのため合わせていない' },
   metro18000: { name: '東京メトロ18000系 (三菱SiC・PMSM)', maker: '三菱', device: 'SiC', lv: 2, motor: 'PMSM', units: 2, ctrl: '1C1M×4',
     gear: [14, 99], wheel: 0.86, accel: 3.3, vmax: 110, decel: 4.0, fade: 3,
     segs: [{ f: 0, m: 'a', fc: 1250, rnd: 60 }, { f: 45, m: 's', n: 27 }],
@@ -1152,7 +1162,7 @@ const NOTCH_P = [0, 0.2, 0.4, 0.6, 0.8, 1.0];   // P1〜P5 のトルク比
 const VEH = {
   gearRatio(p) { return p.gear[1] / p.gear[0]; },
   motorRps(p, kmh) { return kmh / 3.6 / (Math.PI * p.wheel) * VEH.gearRatio(p); },
-  rotorHz(p, kmh) { return VEH.motorRps(p, kmh) * 2; },             // 4極機: 電気周波数=回転数×極対数2
+  rotorHz(p, kmh) { return VEH.motorRps(p, kmh) * (p.poles || 4) / 2; },   // 電気周波数=回転数×極対数（既定4極。プリセットの poles で指定、16000系の PMSM は6極）
   /* 音響の既定（コアへ送る）: hpHz=電磁力のHPF, rad=放射効率HPの折れ点[Hz](0=無効), hum=2f1うなりのレベル(0=無効), cab=客室EQ（磁気LPF 2600Hz・軌道LPF 900Hz, applyPos）。
    *  IGBT・SiC 車は 2026-11 の参考音源の分析から hum・cab を有効にする。GTO・直流機は従来の調整（実車録音合わせ）を保つため無効。
    *  rad は参考音源で確かめた2レベル機だけ（3レベル機は fc 帯そのものが主で、E231-0・223系・313系の低いキャリアが消えるため 0）。
@@ -1187,7 +1197,7 @@ const VEH = {
     }
     return r.segs;
   },
-  kmhAt(p, f1) { return f1 / 2 / VEH.gearRatio(p) * Math.PI * p.wheel * 3.6; },
+  kmhAt(p, f1) { return f1 / VEH.rotorHz(p, 1); },   // rotorHz の逆（極数も含めて一致させる）
   segIndex(segs, f1) { let k = 0; for (let i = 0; i < segs.length; i++) if (f1 >= segs[i].f) k = i; return k; },
   carrier(segs, i, f1, modR) {
     const s = segs[i], nx = segs[i + 1];
@@ -1281,7 +1291,7 @@ const VEH = {
   /* 1ステップ進め、DSPへ送るパラメータを返す */
   step(st, p, dt) {
     if (p.motor === 'DC') return p.dc.type === 'loco' ? VEH.stepLoco(st, p, dt) : p.dc.type === 'ae' ? VEH.stepAE(st, p, dt) : p.dc.type === 'res' ? VEH.stepRes(st, p, dt) : VEH.stepDC(st, p, dt);
-    const n = st.notch, kmh = st.kmh, fB = VEH.fBase(p), vB = VEH.kmhAt(p, fB) * 1.3;   // 定トルク域は全電圧到達後もすべり増で少し延びる
+    const n = st.notch, kmh = st.kmh, fB = VEH.fBase(p), vB = VEH.kmhAt(p, fB) * 1.3;   // 定トルク域は全電圧到達後もすべり増で少し延びる（PMSM はすべり0だが、16000系の録音で約60km/hまで一定だったのでそのまま使う経験値）
     // --- トルク指令
     let tgt = 0, beta = 0;
     if (n > 0) tgt = NOTCH_P[n];
@@ -1830,7 +1840,7 @@ const VEH = {
     }).sort((a, b) => a.f - b.f);
     if (!segs.length) throw new Error('segments が空です');
     segs[0].f = 0;
-    return { name: o.label || '読込データ', maker: '-', device: 'IGBT', lv: 2, gear: [14, 99], wheel: 0.82, accel: 3.0, vmax: +o.vmax || 120, decel: 4.0, fade: 7,
+    return { name: o.label || '読込データ', maker: '-', device: 'IGBT', lv: 2, gear: [14, 99], wheel: 0.82, accel: 3.0, vmax: +o.vmax || 120, decel: 4.0, fade: 7, poles: +o.poles || undefined,
       segs, modes: PRESETS.e233.modes, conf: '-', src: 'JSON読込', note: '' };
   },
 };
@@ -2050,7 +2060,7 @@ function selectPreset(k, obj) {
   if (isAE) { $('r_fc').previousElementSibling.textContent = '界磁率'; $('r_m').previousElementSibling.textContent = '添加励磁'; }
   $('blwBtn').style.display = preset.blower ? '' : 'none';
   const dq = preset.dc;
-  $('info').innerHTML = `<b>${esc(preset.name)}</b>　${esc(preset.device)} ${isLoco ? `直列${dq.ser}・直並列${dq.sp}・並列${dq.par}段（バーニア×${dq.vern}）＋弱め界磁F1〜F${dq.wf.length}　直流直巻電動機` : isRes ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段・弱め界磁${dq.wf.length}段（計${dq.ser + dq.par + dq.wf.length}段、最弱${Math.round(dq.wf[dq.wf.length - 1] * 100)}%）　直流直巻電動機` : isAE ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁添加励磁（無段の弱め界磁 100→${Math.round(VEH.aeBeta(dq, dq.phiMin) * 100)}%）　直流直巻電動機` : isDC ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁チョッパ　直流複巻電動機` : `${preset.lv}レベル　${preset.motor === 'PMSM' ? '永久磁石同期電動機' : '誘導電動機'}`} ${esc(preset.ctrl || '1C4M')}　歯車比 ${preset.gear[1]}:${preset.gear[0]} (${VEH.gearRatio(preset).toFixed(2)})　車輪径 ${preset.wheel * 1000}mm　起動加速度 ${isLoco ? (preset.accel * VEH.locoG(dq, dq.Ihi) * dq.Ihi).toFixed(1) : preset.accel}km/h/s<br>
+  $('info').innerHTML = `<b>${esc(preset.name)}</b>　${esc(preset.device)} ${isLoco ? `直列${dq.ser}・直並列${dq.sp}・並列${dq.par}段（バーニア×${dq.vern}）＋弱め界磁F1〜F${dq.wf.length}　直流直巻電動機` : isRes ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段・弱め界磁${dq.wf.length}段（計${dq.ser + dq.par + dq.wf.length}段、最弱${Math.round(dq.wf[dq.wf.length - 1] * 100)}%）　直流直巻電動機` : isAE ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁添加励磁（無段の弱め界磁 100→${Math.round(VEH.aeBeta(dq, dq.phiMin) * 100)}%）　直流直巻電動機` : isDC ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁チョッパ　直流複巻電動機` : `${preset.lv}レベル　${preset.motor === 'PMSM' ? '永久磁石同期電動機' : '誘導電動機'}${preset.poles ? `（${preset.poles}極）` : ''}`} ${esc(preset.ctrl || '1C4M')}　歯車比 ${preset.gear[1]}:${preset.gear[0]} (${VEH.gearRatio(preset).toFixed(2)})　車輪径 ${preset.wheel * 1000}mm　起動加速度 ${isLoco ? (preset.accel * VEH.locoG(dq, dq.Ihi) * dq.Ihi).toFixed(1) : preset.accel}km/h/s<br>
     信頼度: ${esc(preset.conf)}　出典: ${esc(preset.src)}　${esc(preset.note || '')}<br>
     ${isLoco || isRes ? '発電ブレーキ' : '回生パターン'}: ${preset.bsegs ? '' : '（資料なし・力行と同じ）'}信頼度 ${esc(preset.bconf || '-')}　${esc(preset.bnote || '')}<br>
     空気系: ${esc(airTxt(preset.air))}`;
