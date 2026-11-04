@@ -51,10 +51,40 @@ textarea{width:100%;height:180px;background:#0b0e13;color:var(--tx);border:1px s
 details summary{cursor:pointer;color:var(--sub)}
 .kbd{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11px;color:var(--sub)}
 #msg{color:var(--pw);font-size:12px;margin-left:8px}
+/* 形式の選択（ui.js の pk*）: ボタン＋検索つきの一覧。スマホでは画面いっぱいのシート */
+#presetBox{position:relative;display:flex;gap:4px;min-width:0}
+#presetBtn{display:flex;align-items:baseline;gap:8px;width:340px;max-width:100%;text-align:left;min-width:0}
+#presetName{font-weight:600;white-space:nowrap}
+#presetSub{color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+#presetBtn .caret{color:var(--sub);font-size:11px}
+.pnav{padding:6px 10px;font-size:16px;line-height:1}
+#pk{position:absolute;top:calc(100% + 6px);left:0;z-index:20;width:min(600px,calc(100vw - 32px));max-height:min(72vh,680px);background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.55);display:flex;flex-direction:column}
+#pk[hidden]{display:none}
+.pk-top{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--line);align-items:center}
+#pkQ{flex:1;min-width:0;background:#0b0e13;color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font:inherit}
+#pkQ:focus{outline:none;border-color:var(--acc)}
+.pk-view{display:flex;flex:none}
+.pk-view button{padding:6px 10px;font-size:12px;border-radius:0}
+.pk-view button:first-child{border-radius:6px 0 0 6px}.pk-view button:last-child{border-radius:0 6px 6px 0;border-left:0}
+#pkClose{flex:none;padding:6px 10px}
+#pkList{position:relative;scroll-padding-top:30px;overflow-y:auto;padding:0 0 6px;overscroll-behavior:contain;flex:1}
+.pk-g{position:sticky;top:0;z-index:1;background:var(--panel);color:var(--sub);font-size:11px;letter-spacing:.08em;padding:9px 14px 4px}
+.pk-i{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:baseline;gap:10px;padding:7px 14px;cursor:pointer;border-left:3px solid transparent}
+.pk-i.act{background:var(--panel2)}
+.pk-i.cur{border-left-color:var(--acc)}
+.pk-i.cur .pk-t{color:var(--acc)}
+.pk-t{font-weight:600;white-space:nowrap}
+.pk-s{color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-b{font-size:11px;border:1px solid currentColor;border-radius:10px;padding:0 8px;white-space:nowrap;opacity:.9}
+.pk-b.gto{color:#ffb74d}.pk-b.igbt{color:#4fc3f7}.pk-b.sic{color:#81c784}.pk-b.dc{color:#ce93d8}.pk-b.etc{color:var(--sub)}
+.pk-none{padding:18px 14px;color:var(--sub)}
+.pk-foot{border-top:1px solid var(--line);padding:6px 12px;color:var(--sub);font-size:11px}
 @media (max-width:900px){main{grid-template-columns:1fr 90px}main>.ro-card{grid-column:1/-1}}
 @media (max-width:600px){
 header{gap:8px;padding:8px 10px}header h1{font-size:15px;flex:1 1 100%}header .sp{display:none}
-#startBtn{order:-1;flex:1 1 100%;padding:10px;font-size:16px}#presetSel,#posSel{flex:1 1 140px;min-width:0}#demoBtn,#recBtn{flex:1 1 auto}
+#startBtn{order:-1;flex:1 1 100%;padding:10px;font-size:16px}#presetBox{flex:1 1 100%}#presetBtn{width:auto;flex:1}#posSel{flex:1 1 140px;min-width:0}#demoBtn,#recBtn{flex:1 1 auto}
+#pk{position:fixed;inset:8px;width:auto;max-height:none}.pk-top{flex-wrap:wrap}#pkQ{flex:1 1 100%;order:-1;font-size:16px}.pk-view{flex:1}.pk-view button{flex:1;padding:8px}
+.pk-i{grid-template-columns:minmax(0,1fr) auto;row-gap:2px;padding:10px 14px}.pk-s{grid-column:1/-1;grid-row:2}.pk-foot{display:none}
 main{grid-template-columns:1fr 76px;gap:8px;padding:8px 10px;align-items:start}
 .card{padding:10px}.notch div{padding:8px 0;font-size:14px}
 .ro{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ro .v b{font-size:18px}#modeBadge{font-size:18px}
@@ -66,7 +96,20 @@ main{grid-template-columns:1fr 76px;gap:8px;padding:8px 10px;align-items:start}
 <header>
   <h1>鉄道走行音 再現シミュレーター</h1>
   <button id="startBtn">▶ 音を出す</button>
-  <select id="presetSel" title="車種"></select>
+  <div id="presetBox">
+    <button id="presetPrev" class="pnav" title="前の形式（キー [ ）" aria-label="前の形式">‹</button>
+    <button id="presetBtn" title="形式を選ぶ（キー F）" aria-haspopup="listbox" aria-expanded="false"><span id="presetName"></span><span id="presetSub"></span><span class="caret">▾</span></button>
+    <button id="presetNext" class="pnav" title="次の形式（キー ] ）" aria-label="次の形式">›</button>
+    <div id="pk" hidden>
+      <div class="pk-top">
+        <input id="pkQ" type="search" role="combobox" aria-expanded="true" aria-autocomplete="list" placeholder="検索（例: 京急、GTO、東芝 PM）" autocomplete="off" aria-controls="pkList" aria-label="形式を検索">
+        <div class="pk-view" role="group" aria-label="並べ方"><button data-v="op">事業者別</button><button data-v="kind">方式別</button></div>
+        <button id="pkClose" aria-label="閉じる">✕</button>
+      </div>
+      <div id="pkList" role="listbox" aria-label="形式"></div>
+      <div class="pk-foot"><span class="kbd">↑</span> <span class="kbd">↓</span> 移動　<span class="kbd">Enter</span> 決定　<span class="kbd">Esc</span> 閉じる　（閉じていても <span class="kbd">[</span> <span class="kbd">]</span> で前後の形式）</div>
+    </div>
+  </div>
   <select id="posSel" title="聴取位置">
     <option value="cabin">客室（電動車）</option>
     <option value="under">床下・台車横</option>
@@ -128,6 +171,7 @@ main{grid-template-columns:1fr 76px;gap:8px;padding:8px 10px;align-items:start}
     <div class="row">
       <label><input type="checkbox" id="jointChk" checked> 線路: 定尺レール（オフ＝ロングレール）</label>
       <label><input type="checkbox" id="blepChk" checked> PolyBLEP（エイリアス除去）</label>
+      <button id="mixReset" title="音のON/OFF・ミキサー・線路を最初の状態に戻す（設定はこのブラウザに保存されている）">既定に戻す</button>
       <span id="platBox" style="display:none">
         <button id="standHere">ここで見送る</button>
         <button id="standAhead">500m先で待つ</button>
@@ -144,7 +188,7 @@ main{grid-template-columns:1fr 76px;gap:8px;padding:8px 10px;align-items:start}
       <div class="row" style="margin-top:6px"><button id="jsonLoad">JSON読込</button><button id="jsonExport">現在の設定を書出</button><span id="jsonMsg" style="color:var(--sub)"></span></div>
     </details>
     <p style="color:var(--sub);font-size:12px;margin:10px 0 0">
-      操作: <span class="kbd">↑</span> 力行側 <span class="kbd">↓</span> ブレーキ側 <span class="kbd">N</span>/<span class="kbd">Space</span> 惰行 <span class="kbd">E</span> 非常 <span class="kbd">D</span> デモ <span class="kbd">B</span> ブロアー入/切（機関車） <span class="kbd">C</span> 空気圧縮機を起動（試聴）。
+      操作: <span class="kbd">↑</span> 力行側 <span class="kbd">↓</span> ブレーキ側 <span class="kbd">N</span>/<span class="kbd">Space</span> 惰行 <span class="kbd">E</span> 非常 <span class="kbd">D</span> デモ <span class="kbd">F</span> 形式を選ぶ <span class="kbd">[</span>/<span class="kbd">]</span> 前・次の形式 <span class="kbd">1</span>〜<span class="kbd">7</span> 音のON/OFF <span class="kbd">B</span> ブロアー入/切（機関車） <span class="kbd">C</span> 空気圧縮機を起動（試聴）。
       音源式 y = H<sub>frame</sub>∗[2Re(I₁*·i<sub>r</sub>)+k|i<sub>r</sub>|²]：PWM電圧(PolyBLEP)→漏れインダクタンスでリプル電流→基本波電流との交差項で電磁力→モータフレーム共振。歯車・ファン・転動・継目・風切りは速度から物理的に生成。
     </p>
   </div>
@@ -164,7 +208,7 @@ class RailCore {
   constructor(sr) {
     this.sr = sr;
     // --- ブロック補間するパラメータ（t=目標 / c=現在値）
-    const z = { f1: 0, a: 0, fc: 1000, I: 0, gate: 0, flx: 0, rps: 0, vms: 0, torq: 0, regen: 0, bc: 0, hA: 0, hR: 0, hB: 0, hE: 0, cp: 0, cpP: 0, cpL: 0, hP: 0, wrps: 0, dcI: 0, fch: 0, bw0: 0, bw1: 0, bwq0: 1, dcF: 1 };
+    const z = { f1: 0, a: 0, fc: 1000, I: 0, gate: 0, flx: 0, rps: 0, vms: 0, torq: 0, regen: 0, bc: 0, hA: 0, hR: 0, hB: 0, hE: 0, cp: 0, cpP: 0, cpL: 0, hP: 0, wrps: 0, dcI: 0, fch: 0, bw0: 0, bw1: 0, bwq0: 1, dcF: 1, chD: 0, chA: 0, chHz: 300, swa: 0, swf: 1050 };
     this.t = Object.assign({}, z); this.c = Object.assign({}, z);
     // --- 離散パラメータ
     this.mode = 0;     // 0=非同期 1=同期 2=1パルス
@@ -190,7 +234,14 @@ class RailCore {
     //   参考音源3本とも、力行・回生中は 2f1 の線が最も強い低音として出ていた（例: IR2110 E233 1パルス f1≈115Hz で 229Hz が歯車線より約27dB上、4f1 は 2f1 の −11〜−14dB）。
     //   ただし参考音源の分解能（約6Hz）では 2f1 と機械の 4fr（すべりぶん約6Hz下）を区別できていない。惰行区間でもこの線は約5〜9dB弱く残っていた。振幅の式は process() 内のコメント参照
     //   pm=1（永久磁石同期電動機）は惰行中も磁石の磁束が残るので、ゲートオフでも 70% 残す
-    this.hum = 0; this.pm = 0;
+    this.hum = 0; this.pm = 0; this.gearK = 1;
+    // pm6（PMSM の 6f1, 2026-11-05）: 磁石の起磁力の5・7次高調波と固定子スロットによる 6f1 のトルク・半径方向力の脈動（コギング）。2f1 のうなりに対する振幅比。0=無効。
+    //   16000系(東芝PMSM)の客室録音[Y4]で 6f1 が 2f1 と同程度に出ていた。電流でなく磁石の磁束で決まるので、うなり 2f1 と同じく惰行中も残る（pm=1 のとき）
+    this.pm6 = 0;
+    this.krA = 0;    // 非同期(mode 0)だけの kr（0=kr を使う）。形式ごと（preset.krAsync）。同期/1P の線の比（上の kr の掃引）を変えずに 2fc±2f1・4fc±2f1 の側帯だけ強める（16000系）
+    this.magK = 1;   // PWM 由来の電磁力の倍率（形式ごと。preset.magLv）。うなり(hum/pm6)には掛けない
+    this.gh2 = 0.4; this.gh3 = 0.2;   // 歯車のかみ合い 2・3次の振幅（1次比）。形式ごと（preset.gearH, VEH.coreSet が毎回送る）
+    this.swPh = 0;   // 起動前の励磁音の位相（t.swa=振幅, t.swf=周波数。交流機の VEH.step は毎回送り、preset.pmStart の形式だけ swa>0。直流機の step は送らないので VEH.coreSet が形式選択のたびに swa 0 を送る）
     this.cm = 0;       // 零相電圧(コモンモード)の混入量。GTOは0.3（KATO京急で fc の線）。IGBTは実車録音(E233 YouTube 2本)で低速の fc 帯が無いので0
     this.blep = 1;     // PolyBLEP 有効
     this.lev = { mag: 1, near: 0.12, gear: 0.5, fan: 0.25, slot: 0.04, roll: 0.55, joint: 0.8, wind: 0.35, brake: 0.5, cp: 0.4, amb: 0, blower: 0.5 };
@@ -229,11 +280,15 @@ class RailCore {
     //   F の変動 → 台車・床の構造伝搬（体: 68〜636Hz の共振）、レール速度 → レール・車輪の鳴り（環: 1〜3.6kHz の高Q共振）
     //   共振の周波数・Q は KATO 22-205-1 の打撃のスペクトルの山と減衰時間（−20dB まで 低域 60〜90ms、中域 45ms、2.6kHz 94ms）から（2026-11-03 解析）
     //   継目ごとの個性（α・段違い・左右レールのずれ）は継目番号のハッシュ → 同じ継目は全軸が同じ音、継目ごとに違う音。速度依存は物理から出る（衝突速度 ≈ 2αv）
-    const body = [[68, 6, 0.08], [122, 14, 2.5], [248, 20, 2.6], [364, 20, 0.9], [500, 24, 0.45], [636, 30, 0.5]], ring = [[1050, 60, 0.8], [1890, 120, 4], [2640, 340, 18], [3550, 300, 30]];
-    const mk = (L, k) => L.map(m => Object.assign(this.svf(m[0] * k, m[1]), { g: m[2], q: m[1] }));
+    // 2026-11-04: 客室録音（[C] lJAeB7oUcik, dMvZjCbaMdE, QKtMpbVcnRc, BMgU-MiT0DY）の床の唸りの山は 63〜80Hz、アプリは継目の P2 力（約41Hz）で 39Hz 帯が +8dB・63〜157Hz が −6dB
+    //   → 体へ入る接触力に 4次 HPF JHP（jHP・jHP2。台車の1次ばねは約41Hz の P2 力をよく遮る）、最低次の体のモード 68Hz(Q6) を 76Hz(Q5) へ上げて量を JB_LOW に。KATO の減衰時間（低域 60〜90ms）は 122Hz 以上のモードが担うので変えない
+    const JB_LOW = 0.4, JHP = 60;
+    const body = [[76, 5, JB_LOW], [122, 14, 2.5], [248, 20, 2.6], [364, 20, 0.9], [500, 24, 0.45], [636, 30, 0.5]], ring = [[1050, 60, 0.8], [1890, 120, 4], [2640, 340, 18], [3550, 300, 30]];
+    const mk = (L, k) => L.map(m => Object.assign(this.svf(m[0] * k, m[1]), { g: m[2], q: m[1], f0: m[0] * k }));
     this.jB = mk(body, 1); this.jBR = mk(body, 1.02); this.jR = mk(ring, 1); this.jRR = mk(ring, 1.035);
-    this.jHits = []; this.jIdle = 1e9; this.jLP = this.svf(300, 0.71); this.jLPR = this.svf(300, 0.71);   // 体へは1次ばね・台車枠を伝わる間に高い成分が落ちる（2次LP 300Hz）
+    this.jHits = []; this.jIdle = 1e9; this.jLP = this.svf(300, 0.71); this.jLPR = this.svf(300, 0.71); this.jHP = this.svf(JHP, 0.7); this.jHPR = this.svf(JHP, 0.7); this.jHP2 = this.svf(JHP, 0.7); this.jHP2R = this.svf(JHP, 0.7); this.fRolH = this.svf(55, 0.7); this.fRolHR = this.svf(55, 0.7); this.fRolL = this.svf(250, 0.7); this.fRolLR = this.svf(250, 0.7); this.fWindH = this.svf(2000, 0.6); this.fWindHR = this.svf(2000, 0.6);   // 体へは1次ばね・台車枠を伝わる間に高い成分が落ちる（2次LP 300Hz）
     this.fAmb = this.svf(380, 0.6); this.fAmbR = this.svf(380, 0.6); this.ambLp = 0; this.ambLpR = 0; this.ambRum = 0; this.ambRum1 = 0; this.ambPh = 0; this.ambPh2 = 0;
+    this.fRumH = this.svf(55, 0.7); this.fHiss = this.svf(200, 0.7); this.pk0 = 0; this.pk1 = 0; this.pk2 = 0; this.seed8 = 246813;   // 2026-11-04: 車体の唸りの下限・空調の広帯域（ピンク雑音）。rand8 は専用乱数
     // ブレーキ系フィルタ・状態
     this.fHisA = this.svf(3000, 0.9); this.fHisR = this.svf(1500, 0.7); this.fHisR2 = this.svf(3800, 0.8); this.fHisR3 = this.svf(450, 0.5);
     this.fFrM = this.svf(1600, 0.6); this.fFrL = this.svf(420, 1.0); this.fFrH = this.svf(3600, 1.0);
@@ -256,6 +311,8 @@ class RailCore {
     // 103系（dcKind=3: 直巻電動機・抵抗制御＋発電ブレーキ）: 磁気音は dcMagAE（線リスト dcLines）、自己通風ファンは211系と同じ、
     //   MG はプリセットの mgLines [[Hz, 振幅], ..]（指定時は 211系の既定MG音の代わりに鳴る）
     this.mgLines = null; this.mgPhL = new Float64Array(8);
+    // 電機子チョッパ（dcKind=4: 201系・営団6000系）: 磁気音は dcMagAE（dcLines）、チョッパ音 chopSample（chN 相・遠い相の重み chMix・高次の傾き chTilt・近接 chLv・主電動機の電流リプル chMot）。jet=自己通風ファンの有無
+    this.chN = 2; this.chMix = 0.3; this.chLv = 1; this.chTilt = -0.3; this.chMot = 0.15; this.jet = 1; this.chP = 0; this.chCo = new Float64Array(24); this.chH = 0; this.chY = 0;
   }
   /* ---- 211系 MT61 の磁気音の線（fr の次数・振幅・位相）。YouTube 実車録音2本（クモハ211-3047 両毛線 zPxJWsqqWSA / クモハ211-1009 中央本線 J7Nx2qwMIP4）の発車扇形の傾きから:
    *  歯車 16fr が最強（コアの歯車 ch2 が出す）、4fr が 16fr の約−3dB、8/18/32/42fr が約−6〜−9dB、2/6/14fr は弱い。32fr は歯車の2次（ch2）。
@@ -343,7 +400,7 @@ class RailCore {
   set(p) {
     if (p.t) Object.assign(this.t, p.t);
     if (p.rad !== undefined && p.rad !== this.rad) { this.rad = p.rad; if (p.rad > 0) for (const s of [this.fRadA, this.fRadB]) { this.svfSet(s, p.rad); s.ic1 = s.ic2 = 0; } }
-    for (const k of ['rnd', 'dead', 'phi', 'inj', 'kq', 'kr', 'hpHz', 'hum', 'pm', 'cm', 'units', 'blep', 'teeth', 'blades', 'slots', 'slotSb', 'slotK', 'jointOn', 'jointLen', 'wheel', 'dry', 'detune', 'qLow', 'rotM1', 'rotM2', 'dc', 'fchHz', 'dcKind', 'blw', 'dcLines', 'mgLines', 'cpKind'])
+    for (const k of ['rnd', 'dead', 'phi', 'inj', 'kq', 'kr', 'hpHz', 'hum', 'pm', 'pm6', 'magK', 'krA', 'gh2', 'gh3', 'cm', 'units', 'blep', 'teeth', 'blades', 'slots', 'slotSb', 'slotK', 'jointOn', 'jointLen', 'wheel', 'dry', 'detune', 'qLow', 'rotM1', 'rotM2', 'dc', 'fchHz', 'dcKind', 'blw', 'dcLines', 'mgLines', 'cpKind', 'chN', 'chMix', 'chLv', 'chTilt', 'chMot', 'jet', 'gearK'])
       if (p[k] !== undefined) this[k] = p[k];
     this.rotM1 = Math.min(0.5, this.rotM1); this.rotM2 = Math.min(0.5, this.rotM2);
     // パルスモード系: 出力中(ゲートON)の変更は基本波位相の0跨ぎまで保留（クロスフェードはしない＝切替の跳ねは残る）
@@ -368,6 +425,7 @@ class RailCore {
   }
   rand() { let x = this.seed; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.seed = x >>> 0; return this.seed / 4294967296 * 2 - 1; }
   rand2() { let x = this.seed2; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.seed2 = x >>> 0; return this.seed2 / 4294967296 * 2 - 1; }
+  rand8() { let x = this.seed8; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.seed8 = x >>> 0; return this.seed8 / 4294967296 * 2 - 1; }   // 空調の広帯域・高域の走行音専用（2026-11-04。他の音の乱数列を乱さない）
   rand7() { let x = this.seed7; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.seed7 = x >>> 0; return this.seed7 / 4294967296 * 2 - 1; }   // 軌道音（継目・転動の色付け）専用（他の音の乱数列を乱さない）
   static hh(i) { let x = (i * 374761393 + 668265263) | 0; x = Math.imul(x ^ (x >>> 13), 1274126177); x ^= x >>> 16; return (x >>> 0) / 4294967296; }   // 整数 → 0..1 の固定値（継目番号・区間番号の個性）
   static vn(u) { const i = Math.floor(u), f = u - i, s = (1 - Math.cos(Math.PI * f)) / 2; return (RailCore.hh(i) * (1 - s) + RailCore.hh(i + 1) * s) * 2 - 1; }   // なめらかな値ノイズ −1..1
@@ -399,6 +457,9 @@ class RailCore {
     const hs = u => (2 * u - 1) ** 3 * 3e-4 * bad;     // 段違い: ほとんどの継目は 0.1mm 未満、ときどき 0.3mm（一様だと打撃の強さが段違いだけで決まり α の差が出ない）
     const st = (h4 - 0.5) * 0.1;                     // 左右レールの継目のずれ（±5cm）
     this.jHits.push({ w, far, L: this.jSim(s, (0.002 + 0.004 * h1) * bad, hs(h3)), R: this.jSim(s - st, (0.002 + 0.004 * h5) * bad, hs(h6)) });
+    // 2026-11-04: 環（レール・車輪の鳴り）の周波数を継目ごとに ±4% ずらす。録音14本[C]では金属音の線の位置が録音ごとに違うのに、アプリは全形式・全継目で 2635/2712/3517/3673Hz に
+    //   周囲比 9〜17dB の同じ線が立っていた。Q（KATO 22-205-1 の減衰時間 94ms から）は変えない。同じ継目は全軸が同じ高さ
+    if (id !== this.jRingId) { this.jRingId = id; const d = 0.08 * (H(id + 52711) - 0.5); for (const R of [this.jR, this.jRR]) for (const m of R) if (m.q >= 100) this.svfSet(m, m.f0 * (1 + d)); }
     this.jIdle = 0;
   }
   static get wDev() { return [0, 0.012, -0.018, 0.026]; }   // 転動音のうねり用の軸ごとの周長差（磁気音の gdev とは別。gdev 0.06〜0.5% だとビートが数十秒〜数分になる）
@@ -445,6 +506,12 @@ class RailCore {
     const v = c.vms, kmh = v * 3.6;
     this.svfSet(this.fFan, Math.max(80, this.blades * c.rps));
     const stereo = out.length >= 7;   // 7ch: 5=磁気音R(群B) 6=軌道音R。5chなら磁気音は2群の和（モノラル）
+    // AMB_G/AMB_RUM/AMB_HISS: 環境音の雑音の量（旧 0.2）・車体の唸り（旧 30）・空調の広帯域（旧 0.05）（2026-11-04 客室録音[C]の停車中の 1/3oct と、停車と走行の音量差 15.8〜22.3dB に合わせた。
+    //   停車中の環境音は 2026-11-03 版より約12dB小さい。補機の線は AMB_G に掛けず、プリセットの mgLines の振幅で決める）
+    // ROLL_RUM: 転動の床の唸り（旧 0.08。2026-11-04 客室録音の走行中は 63〜157Hz がアプリより約6dB大きい（アプリが不足） → 量を上げ（T37 の継目の目立ち +6dB 以上を保つ範囲）、55Hz 以下は HPF fRolH、250Hz 以上は 2次LP fRolL で落とす。元の1次LP だけだと高域が漏れて 2k〜8kHz が全位置で +16〜24dB になった＝review1）
+    // HUM_K: 基本波磁束のうなり 2f1 の量（0.5 のまま。2026-11-04 客室録音[C]で 2f1 の線の周囲比は約13.7dB、アプリは 17.5〜19.9dB と目立ちすぎだが、0.3 にすると 6f1 との差が録音（14.9dB）・T35 より小さくなる → 線の目立ちは客室EQの磁気音の利得（settings.js）で下げた）
+    // WIND_HF: 2kHz 以上の高域の走行音の量（下の hfLv。旧 0.4: 2026-11-04 転動の唸りに 250Hz LP を入れて高域の漏れを止めた分を補い、客室録音[C]の走行中 3.2k〜8kHz の不足 8〜21dB を 1/3oct 平均差 3.8dB まで縮めた）
+    const AMB_G = 0.1, AMB_RUM = 20, AMB_HISS = 0.12, ROLL_RUM = 2.2, HUM_K = 0.5, WIND_HF = 0.6;
     const ch0 = out[0], ch1 = out[1], ch2 = out[2], ch3 = out[3], ch4 = out[4], ch5 = stereo ? out[5] : null, ch6 = stereo ? out[6] : null;
     const ripW = TAU * 1000 / sr, leak = TAU * 12 / sr, dmK = TAU * 4 / sr, hpK = Math.exp(-TAU * this.hpHz / sr), hpNK = Math.exp(-TAU * 250 / sr);
     const bankA = this.bankA, bankB = this.bankB, nb = bankA.length;
@@ -465,7 +532,8 @@ class RailCore {
     // 転動音の係数: 粗さの折れ点 v/0.08m、接触フィルタ v/λc（区間の明るさ br で ±30%）。帯域が速度で動いて通る量が変わる分は割り戻す（音量の速度依存は rl・rBoost が受け持つ）
     const kR = 1 - Math.exp(-TAU * v / 0.08 / sr);
     this.rollBlock(this.rS, v, br); if (stereo) this.rollBlock(this.rSR, v, brR);
-    const dt = 1 / sr, JB = 4.8e-4, JR = 9, RUM = 0.08;   // 継目: 接触力の変動[N]→体の共振、レール速度[m/s]→環の共振 の換算。客室70km/h の軌道音全体で打撃の20ms RMS が中央値より約+11dB（改良前 +8dB。KATO 22-205-1 は +26dB と強調ぎみなので半分ほどに）
+    if (this.dcKind === 4) this.chopBlock(c);
+    const dt = 1 / sr, JB = 4.8e-4, JR = 9, RUM = ROLL_RUM;   // 継目: 接触力の変動[N]→体の共振、レール速度[m/s]→環の共振 の換算。客室70km/h の軌道音全体で打撃の20ms RMS が中央値より約+11dB（改良前 +8dB。KATO 22-205-1 は +26dB と強調ぎみなので半分ほどに）
     for (let i = 0; i < n; i++) {
       for (const key in inc) c[key] += inc[key];
       const f1 = c.f1, gate = c.gate, rps = c.rps;
@@ -477,7 +545,9 @@ class RailCore {
         F = this.unit(this.U[0], f1, c, gate, mode, lv3, N, blep, sr, TAU, P3, S3, ripW, leak, dmK);
         for (let u = 1; u < this.units; u++) F += this.unit(this.U[u], f1 * (1 + this.udev[u]), c, gate, mode, lv3, N, blep, sr, TAU, P3, S3, ripW, leak, dmK);
         if (this.units > 1) F *= 1.6 / this.units;
+        F *= this.magK;
       }
+      if (this.dcKind === 4) { const y = this.chY = c.chA > 1e-4 ? this.chopSample(c, sr, TAU) * c.chA : 0; F += y * this.chMot; FDB += y * this.chMot; }   // 電機子チョッパ: 電流リプルが主電動機の磁気音にも少し乗る
       // 保留中のパルスモード変更: 基本波位相が0を跨いだ瞬間（または100ms経過）に適用
       if (this.pend && (this.U[0].th < th0 || ++this.pendN > sr * 0.1)) {
         Object.assign(this, this.pend); this.pend = null; mode = this.mode; lv3 = mode === 2 ? 0 : this.lv3; N = this.N;
@@ -516,12 +586,19 @@ class RailCore {
       //      高速域で磁気音chの音量が上がる（E235 90km/h で約+12dB）のは、参考音源でも 2f1 が 27P の線より約21dB上に出ていることに合わせた結果
       if (this.hum > 0 && !dc) {
         const fx = this.pm ? c.flx + (1 - c.flx) * (1 - gate) : c.flx;   // gate で連続に混ぜる（段差だとノッチオン・オフでプツッと鳴る）
-        const hz = Math.min(1, Math.max(0, (f1 - 8) / 12)), hg = this.hum * Math.min(1.2, f1 / 125) * (0.55 + 0.45 * fx) * (this.pm ? Math.max(gate, 0.7) : gate) * hz * 0.5;
+        const hz = Math.min(1, Math.max(0, (f1 - 8) / 12)), hg = this.hum * Math.min(1.2, f1 / 125) * (0.55 + 0.45 * fx) * (this.pm ? Math.max(gate, 0.7) : gate) * hz * HUM_K;
         if (hg > 1e-6) {
-          let h = 0; for (let u = 0; u < this.units; u++) { const th2 = 2 * this.U[u].th + 0.7 * u; h += Math.sin(th2) + 0.25 * Math.sin(2 * th2 + 1.1); }
+          let h = 0; for (let u = 0; u < this.units; u++) { const th2 = 2 * this.U[u].th + 0.7 * u; h += Math.sin(th2) + 0.25 * Math.sin(2 * th2 + 1.1) + (this.pm6 ? this.pm6 * Math.sin(3 * th2 + 0.4 + 1.3 * u) : 0); }
           h *= hg / Math.sqrt(this.units);
           mA += h * (1 + rm[0]) * this.snG; mB += h * (1 + rm[1]) * this.snG;
         }
+      }
+      // ---- 起動前の励磁音（PMSM, 2026-11-05）: 停車中に力行を入れると、動き出す前の約1.6秒 約1050Hz→250Hz へ下がる音（16000系東芝の録音[Y6][Y7]で発車3回とも。客室で 2fc の線より約20dB大きい）。
+      //      磁極位置推定などのための注入電流で固定子が鳴ると考えられる（推定）。周波数・振幅は VEH.step の pmStart が決める。2倍音を少し
+      if (c.swa > 1e-5) {
+        this.swPh += c.swf / sr; this.swPh -= Math.floor(this.swPh);
+        const y = c.swa * (Math.sin(TAU * this.swPh) + 0.15 * Math.sin(2 * TAU * this.swPh + 0.6)) * this.snG;
+        mA += y; mB += y * 0.9;
       }
       if (stereo) { ch0[i] = mA * L.mag; ch5[i] = mB * L.mag; } else ch0[i] = (mA + mB) * 0.5 * L.mag;
       // ---- インバータ近接音（線間電圧 u-v, HPF 250Hz）
@@ -534,6 +611,7 @@ class RailCore {
         const x = TAU * this.chPh; let y = 0; for (let h = 1; h <= 6; h++) y += Math.sin(h * x) / h;
         ch1[i] += y * c.fch * 0.05 * L.near;
       }
+      if (this.dcKind === 4) ch1[i] += this.chY * this.chLv * L.near;   // 電機子チョッパ: 平滑リアクトル・チョッパ装置の磁歪音（床下の機器箱）
       // ---- 機械音: 歯車（4モータ、車輪径差）＋ファン
       const ld = Math.abs(c.torq);
       let gear = 0;
@@ -547,15 +625,15 @@ class RailCore {
           const ff = this.teeth * rps * (1 + this.gdev[mo]);
           let gp = this.gph[mo] + ff / sr; gp -= Math.floor(gp); this.gph[mo] = gp;
           const x = TAU * gp;
-          gear += Math.sin(x) + 0.4 * Math.sin(2 * x + 0.7) + 0.2 * Math.sin(3 * x + 1.9) + (dc ? 0.15 * Math.sin(4 * x + 2.6) : 0);
+          gear += Math.sin(x) + this.gh2 * Math.sin(2 * x + 0.7) + this.gh3 * Math.sin(3 * x + 1.9) + (dc ? 0.15 * Math.sin(4 * x + 2.6) : 0);
         }
         gear *= 0.25 * gA * am;
       }
       const fanLv = Math.pow(Math.min(1.6, kmh / 100), 2.5);
       this.fanPh += this.blades * rps / sr; this.fanPh -= Math.floor(this.fanPh);
       const fan = (this.svfBP(this.fFan, this.rand()) * 1.2 + 0.25 * Math.sin(TAU * this.fanPh)) * fanLv;
-      ch2[i] = gear * L.gear + fan * L.fan;
-      if ((this.dcKind === 2 || this.dcKind === 3) && kmh > 0.3) {   // 211系（103系 MT55 も自己通風で同じ扱い） 自己通風ファン（外扇形）の「ジェット」: 150〜650Hz 平坦、上は −6dB/oct。力行・惰行を問わず回転とともに鳴る（録音）。弱い 24/28fr（羽根）
+      ch2[i] = gear * L.gear * this.gearK + fan * L.fan;   // gearK: 形式ごとの歯車音の量（プリセット gearLv、既定1）
+      if ((this.dcKind === 2 || this.dcKind === 3 || (this.dcKind === 4 && this.jet)) && kmh > 0.3) {   // 211系（103系 MT55 も自己通風で同じ扱い） 自己通風ファン（外扇形）の「ジェット」: 150〜650Hz 平坦、上は −6dB/oct。力行・惰行を問わず回転とともに鳴る（録音）。弱い 24/28fr（羽根）
         const nz = this.rand4(); this.jetLp += (nz - this.jetLp) * 0.0815;   // 1次LP 650Hz
         this.jetPh += rps / sr; this.jetPh -= Math.floor(this.jetPh);
         const jl = Math.pow(Math.min(1.6, kmh / 100), 2.5);
@@ -573,7 +651,7 @@ class RailCore {
       const am = am0 + amInc * (i + 1), nz = this.rand7(), nzR = this.rand7();
       this.slpPh += slpK; if (this.slpPh >= 1) this.slpPh -= 1;
       const slp = 1 + 0.3 * Math.sin(TAU * this.slpPh);
-      const roll = rl > 1e-4 ? (this.rollS(this.rS, nz, kR) + this.rumble * RUM * slp) * rl * am * tg : 0;
+      const roll = rl > 1e-4 ? (this.rollS(this.rS, nz, kR) + this.svfLP(this.fRolL, this.svfHP(this.fRolH, this.rumble)) * RUM * slp) * rl * am * tg : 0;
       // 継目: 各軸が継目の L 手前（jointLen の倍数 − L）を越えた瞬間に通過を登録（jointHit）。打撃そのものは継目の位置で物理モデルから出る
       this.x += v / sr;
       if (!this.jointOn || v <= 0.05 || this.jointLen !== this.jLenP) { this.jIdx = null; this.jLenP = this.jointLen; }   // 止まっている間・継目OFF・定尺変更の後は、再開した位置から数え直す（全軸が同時に鳴る「バン」を防ぐ）
@@ -596,20 +674,29 @@ class RailCore {
           const JL = RailCore.JP.L, qL = wL.s > JL && Math.abs(wL.f) < 100 && Math.abs(wL.vr) < 1e-4, qR = !stereo || (wR.s > JL && Math.abs(wR.f) < 100 && Math.abs(wR.vr) < 1e-4);
           if ((qL && qR) || wL.s > JL + 0.5 + v * 0.6) hs.splice(k, 1);   // 継目落ちを抜け、P2 力（約41Hz）の揺れが静まったら終わり（途中で切ると力の段で偽の2打目が出る）。静まらなくても継目から 0.5m＋0.6s 走った距離で打ち切り（継目の上で止まったら保持し、発車で続きから進む）
         }
-        jn = this.jRing(this.jB, this.jR, this.svfLP(this.jLP, eB * JB), eR * JR);
-        if (stereo) jnR = this.jRing(this.jBR, this.jRR, this.svfLP(this.jLPR, eBR * JB), eRR * JR);
+        jn = this.jRing(this.jB, this.jR, this.svfHP(this.jHP2, this.svfHP(this.jHP, this.svfLP(this.jLP, eB * JB))), eR * JR);
+        if (stereo) jnR = this.jRing(this.jBR, this.jRR, this.svfHP(this.jHP2R, this.svfHP(this.jHPR, this.svfLP(this.jLPR, eBR * JB))), eRR * JR);
       }
       this.wl1 += (wn - this.wl1) * 0.15; this.wl2 += (this.wl1 - this.wl2) * 0.15;
       const windLv = 3 * Math.pow(Math.min(1.6, kmh / 120), 3);
-      const wind = this.wl2 * windLv;
-      // 環境音（空調ダクトの広帯域＋SIV/変圧器の120・360Hzうなり）。停車中も鳴り続けて「デジタル無音」を防ぐ
+      // 高域の走行音（2026-11-04）: 客室録音14本[C]の走行中は 3.2k〜8kHz がアプリより 8〜21dB 強い（風切りは約1.1kHz で落ちる）。車体・窓を抜ける空力音・転動の高域として
+      //   2kHz 以上の広帯域を速度の2乗で足す（専用乱数 rand8。継目・転動の乱数列は変えない）
+      const hfLv = WIND_HF * Math.pow(Math.min(1.6, kmh / 100), 2);
+      const wind = this.wl2 * windLv + (hfLv > 1e-5 ? this.svfHP(this.fWindH, this.rand8()) * hfLv : 0);
+      // 環境音（空調ダクトの広帯域＋SIV/変圧器のうなり）。停車中も鳴り続けて「デジタル無音」を防ぐ
+      //   2026-11-04: 実車の客室録音14本（[C] lJAeB7oUcik, QKtMpbVcnRc ほか。分析 ana-gap）の停車中は 400Hz〜8kHz がアプリより 10〜35dB 強く、120Hz の線はどの録音にも無い。
+      //   → (1) 客室の軌道音 ch3 の LPF を上げた（IGBT/SiC 900→4000Hz、他 2200→3500Hz。audio.js・settings.js。環境音は左右の広がりを保つため ch3/ch6 のまま）、(2) 空調の広帯域（ピンク雑音 200Hz〜, −3dB/oct）を足す、
+      //     (3) 120Hz を消し 360Hz を半分に、(4) 車体の唸り ambRum は 55Hz 以下を落とす（録音の床の唸りの山は 63〜80Hz、アプリは 39Hz 帯が +8dB）
       let amb = 0, ambR = 0;
       if (L.amb > 0) {
         this.ambPh += 120 / sr; this.ambPh -= Math.floor(this.ambPh); this.ambPh2 += 360 / sr; this.ambPh2 -= Math.floor(this.ambPh2);
-        const hum = 0.05 * Math.sin(TAU * this.ambPh) + 0.025 * Math.sin(TAU * this.ambPh2);
+        const hum = 0.0125 * Math.sin(TAU * this.ambPh2);
         const na = this.rand2(); this.ambLp += (na - this.ambLp) * 0.3; this.ambRum1 += (na - this.ambRum1) * 0.012; this.ambRum += (this.ambRum1 - this.ambRum) * 0.012;   // ambRum: 約90Hz以下の車体の低い唸り（2段LP。1段だと高域にシャー音が漏れる）（実車の客室録音は30〜300Hzが常に支配的）
-        amb = (this.svfBP(this.fAmb, na) * 0.8 + this.ambLp * 0.25 + this.ambRum * 30 + hum) * 0.2 * L.amb;   // 既定0.5で客室 約−40dBA
-        if (stereo) { const nb2 = this.rand2(); this.ambLpR += (nb2 - this.ambLpR) * 0.3; ambR = (this.svfBP(this.fAmbR, nb2) * 0.8 + this.ambLpR * 0.25 + this.ambRum * 30 + hum) * 0.2 * L.amb; }
+        const rum = this.svfHP(this.fRumH, this.ambRum) * AMB_RUM;
+        const nh = this.rand8(); this.pk0 = 0.99765 * this.pk0 + nh * 0.099046; this.pk1 = 0.963 * this.pk1 + nh * 0.2965164; this.pk2 = 0.57 * this.pk2 + nh * 1.0526913;   // ピンク雑音（Kellet の3極近似）
+        const hiss = this.svfHP(this.fHiss, this.pk0 + this.pk1 + this.pk2 + nh * 0.1848) * AMB_HISS;
+        amb = (this.svfBP(this.fAmb, na) * 0.8 + this.ambLp * 0.25 + rum + hum + hiss) * AMB_G * L.amb;   // 既定0.5で客室 約−40dBA
+        if (stereo) { const nb2 = this.rand2(); this.ambLpR += (nb2 - this.ambLpR) * 0.3; ambR = (this.svfBP(this.fAmbR, nb2) * 0.8 + this.ambLpR * 0.25 + rum + hum + hiss) * AMB_G * L.amb; }
         if (this.mgLines) {   // プリセット指定のMG音（103系 MH135-DM92: 録音の停車中 842/862Hz の対と 1447Hz）
           const mp = this.mgPhL, Lm = this.mgLines; let mg = 0;
           for (let q = 0; q < Lm.length && q < 8; q++) { mp[q] += Lm[q][0] / sr; mp[q] -= Math.floor(mp[q]); mg += Lm[q][1] * Math.sin(TAU * mp[q]); }
@@ -624,9 +711,9 @@ class RailCore {
       if (stereo) {   // 右レール側: 同じ速度で乱数・区間の状態・継目の左右ずれが独立
         const wr = this.rand2();
         this.rumbleR += (wr - this.rumbleR) * 0.02;
-        const rollR = rl > 1e-4 ? (this.rollS(this.rSR, nzR, kR) + this.rumbleR * RUM * slp) * rl * am * tgR : 0;
+        const rollR = rl > 1e-4 ? (this.rollS(this.rSR, nzR, kR) + this.svfLP(this.fRolLR, this.svfHP(this.fRolHR, this.rumbleR)) * RUM * slp) * rl * am * tgR : 0;
         this.wl1R += (wr - this.wl1R) * 0.15; this.wl2R += (this.wl1R - this.wl2R) * 0.15;
-        ch6[i] = rollR * L.roll + jnR * L.joint + this.wl2R * windLv * L.wind + ambR;
+        ch6[i] = rollR * L.roll + jnR * L.joint + (this.wl2R * windLv + (hfLv > 1e-5 ? this.svfHP(this.fWindHR, this.rand8()) * hfLv : 0)) * L.wind + ambR;
       }
       ch4[i] = this.brakeSample(c, kmh, wn, sr, TAU) * L.brake + this.cpSample(c, sr, TAU) * L.cp;
     }
@@ -641,7 +728,7 @@ class RailCore {
     if (rps < 0.02) { this.dcB = 0; return 0; }
     const Z = this.slots, ph = this.dcPh, gd = this.gdev;
     if (this.dcKind === 1) return this.dcMagLoco(c, rps, sr, TAU);
-    if (this.dcKind === 2 || this.dcKind === 3) return this.dcMagAE(c, rps, sr, TAU);   // 3=103系（線リストはプリセットの dcLines）
+    if (this.dcKind >= 2) return this.dcMagAE(c, rps, sr, TAU);   // 3=103系・4=電機子チョッパ（線リストはプリセットの dcLines）
     const vol = (0.35 + 0.65 * Math.min(1.2, c.dcI)) * (rps / (rps + 3)) * 1.3 * (1 + 0.03 * c.fch * Math.sin(TAU * this.chPh));
     let A = 0, B = 0;
     for (let k = 0; k < 4; k++) {
@@ -686,6 +773,25 @@ class RailCore {
     }
     this.dcB = B * 0.5 * vol;
     return A * 0.5 * vol;
+  }
+  /* ---- 電機子チョッパの音（dcKind=4）: 通流率 d の矩形パルス列（チョッパ周波数 chHz）の n 次 = sin(πnd)/n（d=0.5 で偶数次が消え、d と 1−d は同じ音）に
+   *      高次の傾き n^chTilt（録音への当てはめで −1.5〜−3dB/次）を掛け、chN 相を 1/chN 周期ずつずらして足す（遠い相は chMix 倍: 機器の近くでは打ち消しが不完全で各相の周波数が最強。
+   *      6000系 330Hz×2相の録音で 330Hz が最強・990Hz が弱い）。係数はブロックの初めの d で作り（d の変化は 0.05/s 程度）、sin(nα) は漸化式で出す。大きさ chA は VEH.stepCH ---- */
+  chopBlock(c) {
+    const d = Math.min(1, Math.max(0, c.chD)), H = this.chH = Math.max(1, Math.min(24, Math.floor(5500 / Math.max(50, c.chHz)))), co = this.chCo;
+    for (let n = 1; n <= H; n++) co[n - 1] = Math.pow(n, this.chTilt) * Math.sin(Math.PI * n * d) / n * 1.4;
+  }
+  chopSample(c, sr, TAU) {
+    this.chP += c.chHz / sr; this.chP -= Math.floor(this.chP);
+    const co = this.chCo, H = this.chH, d = Math.min(1, Math.max(0, c.chD)), N = Math.max(1, this.chN | 0);
+    let y = 0;
+    for (let k = 0; k < N; k++) {
+      const al = TAU * (this.chP + k / N) - Math.PI * d, s1 = Math.sin(al), c2 = 2 * Math.cos(al);   // パルスの中心が位相0（sin(n·α) の和）
+      let sp = 0, s = s1, yk = co[0] * s1;
+      for (let n = 1; n < H; n++) { const sn = c2 * s - sp; sp = s; s = sn; yk += co[n] * sn; }
+      y += k ? yk * this.chMix : yk;
+    }
+    return y;
   }
   /* ---- インバータ1台分: PWM(PolyBLEP)→リプル電流→電磁力。U=台ごとの状態、f1u=その台のインバータ周波数 ---- */
   newUnit() { return { th: 0, phc: 0, fcEff: 1000, rndHoldN: 0, rndT: 0, rndS: 0, ch: new Int8Array(6), cd: new Float64Array(6), pPrev: new Float64Array(3), acc: new Float64Array(3),
@@ -765,7 +871,7 @@ class RailCore {
     // ---- 電磁力: 2Re(I1*·i_r) + kq|i_r|^2
     const tp = U.thPrev - this.phi, I = c.I;
     const I1a = I * Math.sin(tp), I1b = -I * Math.cos(tp);
-    let F = (2 * (I1a * ra + I1b * rb) + this.kr * 2 * (I1a * ra - I1b * rb) + this.kq * (ra * ra + rb * rb)) * gate;
+    let F = (2 * (I1a * ra + I1b * rb) + (mode === 0 && this.krA ? this.krA : this.kr) * 2 * (I1a * ra - I1b * rb) + this.kq * (ra * ra + rb * rb)) * gate;
     // 零相電圧 v0=(vu+vv+vw)/3 は fc とその奇数倍を含む。浮遊容量・フィルタリアクトル経由の加振として加える（1パルスでは除外）
     if (mode !== 2) F += this.cm * (pu + pv + pw) / 3 * gate * (0.3 + 0.7 * Math.min(1, I));
     U.thPrev = th;
@@ -900,6 +1006,10 @@ class RailCore {
  * hold:Hz   … 回生でその周波数を下回ったら、その周波数でのパターン（同期nP→キャリア n·hold 固定）を失効まで保持
  * pol:'dp2'|'dp4' … 3レベル機のダイポーラ変調（コア参照）。hop:1 … 名鑑の新種パルス(HOP)の印。音は同期パルスで近似
  * '1p' が無いパターン（E131 など）は最後の 'w3' を全電圧点とする
+ * gearLv（プリセット）: 歯車音の量の倍率（既定1。2026-11-04 客室録音と比べて歯車の線が強すぎた形式だけ下げた。209系は録音と合っていたので1のまま）
+ * 2026-11-05 追加（16000系東芝で使用。省略時は従来どおり）: krAsync 非同期だけの電磁力の空間2p次項の重み（コアの kr。2fc±2f1・4fc±2f1 の側帯の強さ。0/省略=kr 0.01）,
+ *   magLv PWM 由来の磁気音の倍率（うなり hum/pm6 には掛からない。既定1）, cabMag 客室だけの磁気音の増減[dB]（app/audio.js applyPos）, pm6 PMSM の 6f1（2f1 のうなりとの振幅比）,
+ *   pmStart 停車中から力行を入れたとき動き出すまでの励磁音の長さ[s]（1050→250Hz へ下がる音。VEH.step）, pmLv その音量, gearH 歯車のかみ合い2・3次の振幅 [2次, 3次]（既定 [0.4, 0.2]）
  * fB:Hz（プリセット）… '1p'/'w3' の無いパターンの全電圧点（既定60Hz）。指定時は w3 終端と同じく同期パルスが残る程度の過変調(a≈2.8)で頭打ち（東急2020系の27P）
  * 出典: [A]VvvfGeeks/YAML-Files  [B]VVVF名鑑 vvvfdb.stars.ne.jp（解析画面スペクトログラムの画素読取り、誤差±3〜5%）
  *       [C]YouTube実車録音をブラウザ内で再生しながらスペクトル測定（音声は保存せず。E233: nQbm3cKC5Dk, hP2VTergTf0）
@@ -909,12 +1019,16 @@ class RailCore {
  */
 const PRESETS = {
   e233: { name: 'E233系 (三菱IGBT)', maker: '三菱', device: 'IGBT', lv: 2, gear: [16, 97], wheel: 0.82, accel: 3.0, vmax: 120, decel: 4.2, fade: 7,
+    mgLines: [[2915, 0.0105]],   // 2026-11-04 停車中の補機の線: 客室録音[C] lJAeB7oUcik 2915Hz +9.6dB（dMvZjCbaMdE は 2523Hz +5.1dB）。録音[C]の停車中の線、発生源は推定（SIV・空調のインバータなど）。振幅は 2026-11-04 に×0.8（環境音の経路を ch3 に戻した分の補正。この日に足した線だけ）
+    gearLv: 0.5,   // 2026-11-04 歯車音の量（既定1）: 客室録音 lJAeB7oUcik・dMvZjCbaMdE で歯車 z·fr の線は 2f1 の −13.3dB（見える割合40%）、アプリ −6.7dB(79%)[C]。録音のばらつきがあるので差の約8割だけ下げた
     segs: [{ f: 0, m: 'a', fc: 750, rnd: 100 }, { f: 45, m: 's', n: 3 }, { f: 51, m: '1p' }],
     modes: [[650, 7, 0.35], [1180, 7, 0.65], [1820, 10, 0.5], [3050, 12, 0.8], [4400, 5, 0.18]], rndHold: 0.002, rndTau: 0.0006,
     bsegs: [{ f: 0, m: 'a', fc: 750, rnd: 100 }, { f: 60, fRand: [58, 62], m: 's', n: 3 }, { f: 67, fRand: [64, 72], m: '1p' }],
     bconf: '中', bnote: '1P→3P は62〜72Hz、3P→非同期は58〜62Hzで毎回ばらつく（名鑑スペクトログラム読取り±3〜5%）[B]',
     conf: '高', src: '[A][B] vvvfdb.stars.ne.jp/vvvf_data/jre.html', note: '750Hz一定＋ランダム変調。rnd100Hz・約1.5キャリア周期ごとに抽選(rndHold2ms/移行0.6ms)。実車のYouTube客室録音2本(1000番台/0番台)の2fc帯幅約110Hz・周囲比+6〜10dBを目安に、シャー感が出ない側(帯幅90Hz・周囲比+14dB)に寄せた[C]。低速では fc 帯が無く、発車直後は 4fc(約3kHz)が 2fc 並みに出て数秒で消える[C]。力行 3P 45Hz / 1P 51Hz は名鑑の読取り[B]' },
   e231: { name: 'E231系0番台 (三菱IGBT 3レベル)', maker: '三菱', device: 'IGBT', lv: 3, gear: [14, 99], wheel: 0.82, accel: 2.5, vmax: 120, decel: 4.2, fade: 7,
+    mgLines: [[3225, 0.009], [6001, 0.0065]],   // 2026-11-04 停車中の補機の線: 客室録音[C] vQU83g6Zg9E 3225Hz +8.9dB・6001Hz +7.7dB。録音[C]の停車中の線、発生源は推定（SIV・空調のインバータなど）。振幅は 2026-11-04 に×0.8（環境音の経路を ch3 に戻した分の補正。この日に足した線だけ）
+    gearLv: 0.32,   // 2026-11-04 歯車音の量（既定1）: 客室録音 vQU83g6Zg9E・T41x661oN-s で歯車の線は 2f1 の −16.3dB(21%)、アプリ −4.5dB(84%)[C]。録音のばらつきがあるので差の約8割だけ下げた
     segs: [{ f: 0, m: 'a', fc: 197, rnd: 150, pol: 'dp2' }, { f: 2, m: 'a', fc: [197, 423], rnd: 150, pol: 'dp2' }, { f: 11, m: 'a', fc: [423, 880], rnd: 150 },
       { f: 37.5, m: 's', n: 3 }, { f: 61, m: '1p' }],
     modes: [[680, 10, 1], [1100, 6, 0.6], [1700, 10, 0.55], [2900, 12, 0.3], [4300, 5, 0.18]],
@@ -929,6 +1043,8 @@ const PRESETS = {
     bconf: '中〜高', bnote: '構造は力行と同じ。各切替点が6〜7Hz高く、急上昇の上限1600Hz[A]',
     conf: '高', src: '[A][B]', note: '1045Hz→710Hzへ下降してから1750Hzへ急上昇' },
   e235: { name: 'E235系 (三菱フルSiC)', maker: '三菱', device: 'SiC', lv: 2, gear: [14, 99], wheel: 0.82, accel: 3.0, vmax: 120, decel: 4.2, fade: 0, pureElec: 1, fB: 74,
+    mgLines: [[2348, 0.0095], [2416, 0.011]],   // 2026-11-04 停車中の補機の線: 客室録音[C] QKtMpbVcnRc・BMgU-MiT0DY の両方に 2348Hz（+6.8〜9.4dB）、QKtM は 2416Hz +9.2dB も。録音[C]の停車中の線、発生源は推定（SIV・空調のインバータなど）。振幅は 2026-11-04 に×0.8（環境音の経路を ch3 に戻した分の補正。この日に足した線だけ）
+    gearLv: 0.4,   // 2026-11-04 歯車音の量（既定1）: 客室録音 QKtMpbVcnRc・BMgU-MiT0DY で歯車の線は 2f1 の −14.2dB(41%)、アプリ −5.8dB(88%)[C]。録音のばらつきがあるので差の約8割だけ下げた
     segs: [{ f: 0, m: 'a', fc: 1200, rnd: 60 }, { f: 67, m: 's', n: 27 }],
     modes: [[900, 6, 0.4], [1500, 7, 0.5], [2400, 8, 1.0], [3300, 10, 0.5], [4800, 5, 0.2]],
     bconf: '低', bnote: '資料なし→力行と同じ(推定)',
@@ -944,7 +1060,28 @@ const PRESETS = {
     bconf: '高', bnote: '5P〜1Pが力行より6〜11Hz高い。失効速度が低く200Hz非同期まで聞こえる[A][B]',
     conf: '高(9001F基準)', src: '[A][B] vvvfdb.stars.ne.jp/vvvf_data/tokyu.html',
     note: 'GTO多段同期。低キャリアなので電流リプルが大きく音が太い。参考: 名鑑の9002F〜(VF-HR112)の力行切替は 7/8/13/24/31/37.6/42/43.7Hz で、9001F と異なる可能性があるため値は変えていない' },
+  /* ---- 2026-11-04 追加（YouTube 実車録音のFFT＋名鑑）: 東急5000系・京王8000系・京成3700形・阪急1000系・JR西日本225系・京阪13000系 */
+  tokyu5000: { name: '東急5000系 (日立IGBT)', maker: '日立', device: 'IGBT', lv: 2, ctrl: '1C4M×2群', gear: [14, 87], wheel: 0.86, accel: 3.3, vmax: 110, decel: 3.5, fade: 0, pureElec: 1,
+    segs: [{ f: 0, m: 'a', fc: 740 }, { f: 19, m: 'a', fc: [740, 700] }, { f: 38, m: 'a', fc: [700, 1400] }, { f: 43, m: 'w3' }, { f: 55, m: '1p' }],
+    modes: [[760, 10, 1], [1250, 7, 0.6], [1900, 11, 0.5], [3200, 12, 0.3], [4600, 5, 0.18]],   // E231系近郊(日立IGBT)から流用(推定)
+    bsegs: [{ f: 0, m: 'a', fc: 740 }, { f: 25, m: 'a', fc: [740, 705] }, { f: 47, m: 'w3' }, { f: 58, m: '1p' }],
+    bconf: '低〜中(非同期740Hzで停止まで・47Hz付近から非同期は録音[Y10]、広域3P/1P の境界58/47Hzは推定)', bnote: '回生は f1≈45〜48Hz で非同期(約705Hz)が現れ、25Hz以下で740Hz一定に戻り停止まで回生[Y10][W]。名鑑の「停止間際200Hz」は録音で確認できず',
+    conf: '中(非同期740Hz一定・19Hzからの下降は録音2本[Y10][Y11]) / 低(急上昇の終点1400Hz・広域3P 43Hz・1P 55Hz は推定)', src: '[B] vvvfdb.stars.ne.jp/vvvf_data/tokyu.html (H2I-2、文字情報のみ) [W] ja.wikipedia 東急5000系電車 (2代) [Y10]YouTube 2Z0RK-1uvzk(5106F デハ5906) [Y11]YouTube 05gj3-aPeyA',
+    note: 'VFI-HR2820B/D(1C4M2群)・1420H/M(1C4M1群)、素子3300V-600A、主電動機190kW(TKM-99)、歯車比87:14、TD継手[W]。名鑑: 非同期-広域3P-1P、740Hzから700Hzまで下降し急上昇[B]。' +
+      '2026-11-04 録音をブラウザ内でFFT(音声は保存せず): 4fc帯2950Hz(fc 737)が f1≈19Hz まで一定、f1≈38Hzで2810Hz(fc 703)まで下がり、43〜45Hzで非同期帯が消える[Y10]。[Y11]の2回の発車も 740→約715Hz(f1≈17〜34Hz)。' +
+      '床下録音の最強の線を歯車(7f1)とすると加速度3.36km/h/sで仕様と一致(6f1 とも取れる)。2011年度以降の5050系はランダム変調付きで別物' },
+  keio8000: { name: '京王8000系未更新車 (日立GTO)', maker: '日立', device: 'GTO', lv: 2, ctrl: '1C8M', gear: [14, 85], wheel: 0.86, accel: 3.3, vmax: 110, decel: 4.0, fade: 5, dead: 0.04,
+    segs: [{ f: 0, m: 'a', fc: 400 }, { f: 23.2, m: 's', n: 15 }, { f: 26, m: 's', n: 11 }, { f: 30.7, m: 's', n: 7 }, { f: 39, m: 's', n: 3 }, { f: 45.6, m: 'w3' }, { f: 46.4, m: '1p' }],
+    modes: [[620, 9, 1], [980, 6, 0.7], [1550, 9, 0.5], [2700, 11, 0.3], [4000, 5, 0.15]],   // 東急9000系(日立GTO)から流用(推定)
+    bsegs: [{ f: 0, m: 's', n: 21 }, { f: 18.2, m: 's', n: 15 }, { f: 29.5, m: 's', n: 11 }, { f: 36, m: 's', n: 7 }, { f: 48.6, m: 's', n: 3 }, { f: 60, m: 'w3' }, { f: 64, m: '1p' }],
+    bconf: '中(7P以下は名鑑画素読取り±3〜5%、3P/広域3P/1Pの境界60/64Hzは名鑑のラベル位置からの推定、失効5km/hは推定)',
+    bnote: '1P→広域3P→3P→7P 48.6→11P 36.0→15P 29.5→21P 18.2Hz、21Pのまま失効（まれに非同期あり、本モデルでは省略）[B]',
+    conf: '中〜高(非同期400Hz・15P切替は録音3本[Y7][Y8][Y9]と名鑑[B]が一致)', src: '[B] vvvfdb.stars.ne.jp/analysis/hitachi.html (Keio_8000_H_GTO_A_1/B_1) [W] ja.wikipedia 京王8000系電車 [Y7]YouTube 5sPcipv9Wxw(8713F) [Y8]-xLSs6kk_pU [Y9]BTGYFwPOTTs',
+    note: 'VFG-HR1820C(日立2レベルGTO)、主電動機150kW(東洋TDK-6155A/日立HS-33534-01RB)、歯車比85:14、WN[W]。非同期400Hz一定→15P 23.2→11P 26.0→7P 30.7→3P 39→広域3P 45.6→1P 46.4Hz（名鑑の加速側画像の線の次数比から読取り[B]）。' +
+      '2026-11-04 録音3本をブラウザ内でFFT: 非同期 fc=400.0Hz・拡散なし、15P切替 f1≈23〜26Hz を確認。後段の同期と回生は録音の雑音で読めず名鑑の値。起動加速度3.3は高加速化改造後[W]。未更新車は 8713F・8714F のみ' },
   keikyu: { name: '京急2100形 (シーメンスGTO ドレミファ)', maker: 'シーメンス', device: 'GTO', frontM: 1, lv: 2, gear: [14, 83], wheel: 0.86, accel: 3.5, vmax: 120, decel: 4.0, fade: 8, dead: 0.04,
+    mgLines: [[1108, 0.021], [905, 0.013]],   // 2026-11-04 停車中の補機の線: 客室録音[C] OL5bWpXcZL8 1108Hz +11.4dB・905Hz +8.8dB（pfJcQv5z_Bo は 795/1590Hz で、編成で違う可能性）。録音[C]の停車中の線、発生源は推定（SIV・空調のインバータなど）。振幅は 2026-11-04 に×0.8（環境音の経路を ch3 に戻した分の補正。この日に足した線だけ）
+    gearLv: 0.38,   // 2026-11-04 歯車音の量（既定1）: 客室録音 OL5bWpXcZL8 で歯車の線は 2f1 の −12.9dB、アプリ −3.7dB[C]。録音のばらつきがあるので差の約8割だけ下げた
     segs: [{ f: 0, m: 'a', steps: [[0, 175], [0.5, 196], [1.5, 223], [2.0, 233], [2.7, 262], [3.4, 294], [4.3, 311], [5.0, 350]] },
       { f: 5.6, m: 'a', fc: 400 }, { f: 24, m: 's', n: 15 }, { f: 27, m: 's', n: 13 }, { f: 30, m: 's', n: 11 }, { f: 36.7, m: 's', n: 9 },
       { f: 43.5, m: 's', n: 7 }, { f: 57, m: 's', n: 5 }, { f: 59, m: 's', n: 3 }, { f: 80, m: '1p' }],
@@ -960,6 +1097,15 @@ const PRESETS = {
     bsegs: [{ f: 0, m: 's', n: 21, hold: 6 }, { f: 16.3, m: 's', n: 15 }, { f: 22.7, m: 's', n: 9 }, { f: 40, m: 's', n: 5 }, { f: 61, m: 's', n: 3 }, { f: 76, m: '1p' }],
     bconf: '高(低速端の保持6Hz・失効4km/hは推定)', bnote: '減速時は非同期なし(21Pのまま失効)[B]。6Hz以下は21Pのパターン(キャリア126Hz)を保持し、失効で途切れる[S]。3P・1Pが15Hz以上高い',
     conf: '高', src: '[A][B] vvvfdb.stars.ne.jp/vvvf_data/hankyu.html', note: '東洋GTO初期型' },
+  hankyu1000: { name: '阪急1000系 (東芝IGBT・PMSM)', maker: '東芝', device: 'IGBT', lv: 2, motor: 'PMSM', poles: 6, units: 2, ctrl: '1C1M×4(推定)',
+    gear: [15, 80], wheel: 0.86, accel: 2.6, vmax: 115, decel: 3.7, fade: 3,
+    slotLv: 0,   // PMSM は回転子にスロットが無い（16000系と同じ）
+    segs: [{ f: 0, m: 'a', fc: 480 }, { f: 43, m: '1p' }],   // 19〜43Hz の扇状の線（同期パルス数）は読めず、非同期で近似
+    modes: [[700, 10, 1], [1150, 7, 0.6], [1800, 10, 0.5], [3000, 12, 0.3], [4400, 5, 0.18]],   // 16000系(東芝PMSM)と同じ(推定)
+    bconf: '低', bnote: '録音で読めず→力行と同じ(推定)。失効3km/hも推定',
+    conf: '低(録音1本の読取り。極数6は線の比と加速度2.6の一致から中、非同期480Hz・1P 43Hz・歯数15:80は推定を含む) / 仕様は[W]', src: '[W] ja.wikipedia 阪急1000系電車(2代) [Y]YouTube rVVAAMtduDw(1007F)',
+    note: 'SVF102-B0、SEA-538A PMSM 190kW・2000rpm、歯車比5.33(歯数15:80は比からの推定)[W]。2026-11-04 録音をブラウザ内でFFT(音声は保存せず): 速度に比例する線の基本の傾き 8.62Hz/s を 2f1 とすると 6極・2.62km/h/s で[W]と一致。' +
+      'f1<17Hz で 470〜480Hz 一定の線(非同期 fc≈480 と判断、録音1本)、f1≥43Hz で 6f1・12f1・18f1 だけ（1Pと判断）。間の 19〜43Hz は原点を通らない扇状の線で同期パルス数は読めず。客室録音2本(aR5oaZzE8kE, VI4USppJPtg)は静かで読めず' },
   jrw207: { name: 'JR西日本207系1000番台 (東芝GTO)', maker: '東芝', device: 'GTO', lv: 2, gear: [14, 99], wheel: 0.86, accel: 2.7, vmax: 120, decel: 4.0, fade: 8, dead: 0.04,
     segs: [{ f: 0, m: 'a', fc: 365 }, { f: 14, m: 's', n: 15 }, { f: 31, m: 's', n: 9 }, { f: 44, m: 's', n: 5 }, { f: 53, m: 's', n: 3 }, { f: 60, m: '1p' }],
     modes: [[640, 9, 1], [1000, 6, 0.65], [1600, 9, 0.5], [2700, 11, 0.3], [4000, 5, 0.15]],
@@ -972,7 +1118,17 @@ const PRESETS = {
     bsegs: [{ f: 0, m: 'a', fc: 1050 }, { f: 33, m: 's', n: 9 }, { f: 92.5, m: '1p', fRand: [60, 92.5] }],
     bconf: '中〜高', bnote: '9P→1Pの切替点は60〜92.5Hzで大きく揺れる(ブレーキごとに抽選)。0km/h付近まで非同期で回生[A][B]',
     conf: '中', src: '[A][B][W] vvvfdb.stars.ne.jp/vvvf_data/keikyu.html', note: '力行の9P→1Pは53〜58.5Hzでばらつく(加速ごとに抽選)[B]。53.5Hzの9P別形は省略' },
+  keisei3700: { name: '京成3700形 (東洋GTO・ソフト更新車)', maker: '東洋', device: 'GTO', lv: 2, ctrl: '1C8M', gear: [14, 85], wheel: 0.86, accel: 3.5, vmax: 120, decel: 4.0, fade: 4, dead: 0.04,
+    segs: [{ f: 0, m: 'a', fc: [260, 380] }, { f: 24, m: 'a', fc: 380 }, { f: 27.4, m: 's', n: 9 }, { f: 38.4, m: 's', n: 5 }, { f: 43, m: 's', n: 3 }, { f: 45.6, m: 'w3' }, { f: 48.7, m: '1p' }],
+    modes: [[600, 9, 1], [950, 6, 0.7], [1500, 9, 0.5], [2600, 11, 0.3], [3900, 5, 0.15]],   // 阪急8300系(東洋GTO)から流用(推定)
+    bsegs: [{ f: 0, m: 'a', fc: [280, 370] }, { f: 23.1, m: 's', n: 9 }, { f: 39.2, m: 's', n: 5 }, { f: 48.7, m: 's', n: 3 }, { f: 54.3, m: 'w3' }, { f: 58.8, m: '1p' }],
+    bconf: '中〜高', bnote: '1P→広域3P 58.8→3P 54.3→5P 48.7→9P 39.2→非同期23.1Hz（名鑑解析画面の画素読取り±3〜5%[B]、9P→非同期は録音[Y5]でも約23Hz）。非同期は370Hzから下降し失効直前で約280〜290Hz[Y5][Y6]。失効4km/hは録音の線の消え方からの推定',
+    conf: '中〜高', src: '[B] vvvfdb.stars.ne.jp/analysis/toyo.html#Y2G-3C [W] ja.wikipedia 京成3700形電車 [Y5]YouTube iJFALA8aF6g [Y6]YouTube hCCfcbGA0bE',
+    note: 'RG633A-M(1C8M)、2009年ソフト更新(Y2G-3C)。主電動機130kW(東洋TDK-6170-A/三菱MB-5041-A)、歯車比85:14[W]。非同期260Hz→380Hzへ上昇(380Hz到達はf1≈24Hz)→27.4Hzで9P→5P→3P→広域3P→1P 48.7Hz（名鑑画素読取り[B]）。' +
+      '2026-11-04 録音[Y5][Y6]をブラウザ内でFFT: 発車直後の2fc線 524〜540Hz、同期直前 2fc≈760Hz、非同期→9P は f1=26.7/24.8Hz で名鑑と一致、加速度3.4〜3.7km/h/s。9P以降の切替は録音では読めず名鑑の値。' +
+      '名鑑の「非同期に拡散のない箇所が出現」＝更新車は非同期に拡散あり（幅は未測定のため rnd は付けていない）。車輪径は推定' },
   jre209: { name: '209系0番台 (三菱GTO 3レベル)', maker: '三菱', device: 'GTO', lv: 3, gear: [14, 99], wheel: 0.86, accel: 2.5, vmax: 110, decel: 4.0, fade: 8, dead: 0.04,
+    mgLines: [[2752, 0.0095]],   // 2026-11-04 停車中の補機の線: 客室録音[C] Jyk94U-eSCk 2752Hz +9.3dB（URtUuGveb5U の 5424Hz は 205系の録音にも出るので録音機材・駅の音とみて外した）。録音[C]の停車中の線、発生源は推定（SIV・空調のインバータなど）。振幅は 2026-11-04 に×0.8（環境音の経路を ch3 に戻した分の補正。この日に足した線だけ）
     segs: [{ f: 0, m: 'a', fc: 230 }, { f: 4, m: 's', n: 57 }, { f: 9, m: 's', n: 33 }, { f: 19, m: 's', n: 21 }, { f: 29, m: 's', n: 5 },
       { f: 45, m: 's', n: 3 }, { f: 49, m: 'w3' }, { f: 53, m: '1p' }],
     bsegs: [{ f: 7, m: 's', n: 33 }, { f: 19, m: 's', n: 21 }, { f: 40, m: 's', n: 9 }, { f: 49, m: 's', n: 3 }, { f: 60, m: '1p' }],
@@ -1007,12 +1163,22 @@ const PRESETS = {
     gear: [14, 109], wheel: 0.86, accel: 3.3, vmax: 110, decel: 3.7, fade: 0, pureElec: 1,
     slotLv: 0,   // PMSM は回転子にスロットが無い（録音にも 44fr 系の線なし。出ていたのは歯車14fr系と 2f1 の倍数）
     segs: [{ f: 0, m: 'a', fc: 1000 }, { f: 116, m: '1p' }],
-    modes: [[700, 10, 1], [1150, 7, 0.6], [1800, 10, 0.5], [3000, 12, 0.3], [4400, 5, 0.18]],
+    // 2026-11-05 録音3本[Y5][Y6][Y7]のFFTに合わせて音響を作り直し（旧: modes 700/1150/1800/3000/4400 の推定・kr 既定0.01・hum 1 → 低速で 2fc=2000Hz の一本線が側帯より約47dB強く、
+    //   客室全体の約−5dB を占める「ピー」だった。客室録音では 2fc 帯は全体の −25〜−40dB、線の周囲比 10〜20dB）:
+    //   ・非同期の線は 2fc と 2fc±2f1 がほぼ同じ強さ → krAsync 2.5（非同期だけ。1P は従来の kr のまま＝6k·f1 の線だけ）
+    //   ・3fc±3f1（下側 3fc−3f1 が強い）・4fc±2f1 の帯が 2fc 帯と同じかそれ以上（ホーム[Y6]で 4fc 帯が約+9dB。説明文の「賑やかで独特な音」）→ 共振 2930/3950Hz。
+    //     電磁力そのものは 2fc が約20dB強いので Q を高くして 2fc への漏れを抑える。fc 帯（fc±3f1）は弱い
+    //   ・低音は 2f1 と 6f1（pm6, PMSM のコギング）が同程度で、どちらも歯車14fr より弱い（hum 0.12。客室[Y5][Y7]で歯車の周囲比14〜18dB、2f1 は8〜10dB）
+    //   ・磁気音の量 magLv 0.07（台車間近[Y7]で 2fc〜4fc 帯が最大の帯と同程度になる量。krAsync で約12dB大きくなった分も含む）。客室は cabMag −14dB
+    //     （客室[Y7]の加速中は 2k・3.15k・4k 帯が 63Hz 帯より16〜21dB下。全閉形 PMSM と車体の遮音で、台車間近の大きな VVVF 音が客室ではかなり小さい）
+    //   ・停車中から力行を入れると、動き出す前の約1.6秒 1050Hz→250Hz へ下がる音（pmStart/pmLv。発車3回とも。客室で 2fc の線より約20dB大きい）
+    //   ・歯車の 2・3次（gearH）は 1次より弱い（客室[Y5][Y7]で 2×14fr は 14fr 以下）
+    modes: [[2930, 12, 6], [3950, 16, 10], [2000, 8, 0.1], [700, 10, 0.3]], krAsync: 2.5, hum: 0.12, pm6: 1, magLv: 0.07, cabMag: -14, pmStart: 1.6, pmLv: 0.1, gearH: [0.2, 0.08],
     bsegs: [{ f: 0, m: 'a', fc: 1000 }, { f: 116, m: '1p' }],
     bconf: '中(録音2回の読取り。1P→非同期の切替は f1≈111〜123Hz で、速度の外挿が粗く1点に絞れない)',
     bnote: '1P→約116Hzで非同期1000Hzへ、そのまま停止直前(f1≈10Hz)まで非同期で回生＝純電気ブレーキ[W][Y4]。切替点は力行と同じとした',
-    conf: '仕様は高(MM-S5A 205kW・6極・歯車比109:14・1C1M×4・起動加速度3.3・常用減速度3.7は[W]) / 非同期1000Hz・1P切替は録音[Y4]の読取り(中) / 車輪径・共振modes・2群(units)は推定',
-    src: '[W] ja.wikipedia 東京メトロ16000系電車 [Y4]YouTube wPsUFoOVOXI(16112F 2次車 東芝、客室) trainmotorsound.com/eidan.html',
+    conf: '仕様は高(MM-S5A 205kW・6極・歯車比109:14・1C1M×4・起動加速度3.3・常用減速度3.7は[W]) / 非同期1000Hz・1P切替は録音[Y4]の読取り(中) / 共振modes・krAsync・magLv・cabMag・励磁音は2026-11-05 録音[Y5][Y6][Y7]のFFTに合わせた調整値(中) / 車輪径・2群(units)は推定',
+    src: '[W] ja.wikipedia 東京メトロ16000系電車 [Y4]YouTube wPsUFoOVOXI(16112F 2次車 東芝、客室) [Y5]YouTube WaWAv5vIEfE(16109F 16909 客室、大手町〜綾瀬・地下) [Y6]YouTube sdAuGnwgHeM(東芝・三菱 サウンド集、ホーム) [Y7]YouTube oXNkFiWpV-k(東芝PMSM サウンド集。12:51 客室 登戸→向ヶ丘遊園・地上、14:52 台車間近) trainmotorsound.com/eidan.html',
     note: '東芝2レベルIGBT(3300V-800A)・1C1M×4群(2in1)、16101F〜16116F。4次車(16117F〜)以降は三菱製。' +
       '録音[Y4]をブラウザ内でFFT(2026-11-04、音声は保存せず): 発車から 1000/2000/3000/4000Hz を中心に側帯が開く(fc±3f1・2fc±2f1・3fc±3f1・4fc±2f1)→ 非同期 fc≈1000Hz 一定。線は細くランダム変調なし(旧値 rnd300 は誤り)。' +
       '加速中の f1≈114Hz(約48km/h)までキャリアの線があり、f1≈122Hzで消え以後は f1 の倍数の線だけ(同期多パルスの線は見えない)→ 1P 116Hz(定格115Hzとほぼ一致)。' +
@@ -1032,6 +1198,22 @@ const PRESETS = {
     bconf: '中(失効6km/hは画素からの外挿)', bnote: '1P→3P 75Hz、3P→非同期 53Hz、1000→500Hz下降は32→23Hz、以下ダイポーラ500Hzで失効(インバータ周波数約7.5Hz)[B]',
     conf: '中〜高', src: '[B] vvvfdb.stars.ne.jp/vvvf_data/jrw.html#223_h, analysis/hitachi.html#H3I-2 [W]',
     note: 'H3I-2[a1][b2][c2]。ダイポーラ(4fc強調)500Hz一定→21.6Hzから1000Hzへ周波数直線上昇(WaveToneで上に凸)→30.6Hzでユニポーラ1000Hz→3レベル3P→1P。ランダム変調なし。2021年以降は回生拡大のソフト(1000番台更新車タイプ)へ順次変更' },
+  jrw225: { name: 'JR西日本225系0番台 (東洋IGBT)', maker: '東洋', device: 'IGBT', lv: 2, ctrl: '1C2M', gear: [15, 98], wheel: 0.86, accel: 2.5, vmax: 130, decel: 4.6, fade: 0, pureElec: 1,
+    segs: [{ f: 0, m: 'a', fc: 1055 }, { f: 32.9, m: 's', n: 9 }, { f: 50, fRand: [48, 51], m: '1p' }],
+    modes: [[740, 10, 1], [1200, 7, 0.6], [1850, 10, 0.5], [3100, 12, 0.3], [4500, 5, 0.18]],   // 東洋IGBT(京急新1000形)から流用(推定)
+    bsegs: [{ f: 0, m: 'a', fc: 1055 }, { f: 30.2, m: 's', n: 9 }, { f: 75, m: '1p' }],
+    bconf: '低(9P→非同期30.2Hzは[B]。1P→9Pの75Hzは録音1本で 9P の線が f1≈50〜70Hz に見えたことからの推定)', bnote: '1P→9P→非同期1055Hz、純電気ブレーキで停止直前まで回生（録音で停止直前に 2fc 2104Hz が戻る）[B][W]',
+    conf: '中〜高(非同期1055Hz・9P 32.9Hzは録音2本と[B]が一致、9P→1P 50Hzは録音2本の読取り) / 歯数15:98は比6.53からの推定 / 仕様は[W]', src: '[B] vvvfdb.stars.ne.jp/analysis/toyo.html(Y2I-1A) [W] ja.wikipedia JR西日本225系電車 [Y]YouTube k3Ks3Oibrnw, w2G6R1iMeCc(0番台 東洋)',
+    note: 'WPC15A(東洋純正。三菱・日立・東芝製は音が違うのでこのキーは東洋車だけ)、WMT106A 270kW、1:6.53[W]。2026-11-04 録音をブラウザ内でFFT(音声は保存せず): 2fc 2104〜2109Hz の水平線→9P(12f1・18f1 の線 387Hz/42Hz毎秒・581Hz/62Hz毎秒が録音2本で同じ)→f1≈50Hzで6f1だけが残る1P。' +
+      '加速中の f1 の傾き 3.5Hz/s(4極・6.53で約2.6km/h/s、[W]の2.5以上と合う)。常用減速度4.6は[W]（非常は共通の作りで×1.1）' },
+  keihan13000: { name: '京阪13000系 (東洋IGBT)', maker: '東洋', device: 'IGBT', lv: 2, ctrl: '1C2M', gear: [14, 85], wheel: 0.86, accel: 2.8, vmax: 110, decel: 4.0, fade: 5,
+    segs: [{ f: 0, m: 'a', fc: 525 }, { f: 33.5, m: 's', n: 9 }, { f: 50, fRand: [48, 52], m: '1p' }],
+    modes: [[740, 10, 1], [1200, 7, 0.6], [1850, 10, 0.5], [3100, 12, 0.3], [4500, 5, 0.18]],   // 東洋IGBT(京急新1000形)から流用(推定)
+    bsegs: [{ f: 0, m: 'a', fc: 525 }, { f: 33, m: 's', n: 9 }, { f: 50, m: '1p' }],
+    bconf: '低〜中(9P→非同期33Hzは[B]、1P→9Pの切替は読めず→力行と同じ50Hzと推定、失効5km/hは推定)', bnote: '1P→9P→非同期525Hz(33Hz)。停止間際は空気ブレーキへ[B]（録音では2fcの線が停止直前まで残る）',
+    conf: '中〜高(非同期525Hz・9P切替は録音2本と[B]が一致、9P→1P 50Hzは録音2本の読取り±3Hz) / 仕様は[W]', src: '[B] vvvfdb.stars.ne.jp/vvvf_data/keihan.html, analysis/toyo.html(Y2I-1B) [W] ja.wikipedia 京阪13000系電車 [Y]YouTube KFx2-F5CxeY(13023F 客室), apca8_fTAQ4(13022F 宇治線)',
+    note: 'RG6004-B系(1C2M2群)、主電動機TDK-6151-C 200kW、歯車比85:14[W]。2026-11-04 録音をブラウザ内でFFT(音声は保存せず): 発車から 2fc=1049Hz(4fc 2098Hz)の水平線→fc 525Hz一定(ランダム変調なし)。' +
+      '2fc が消える点の f1 は 34Hz・32.5Hz(6f1・2fc−2f1 の線から)→9P 33.5Hz[B]。9P は 9f1・18f1 の線が強く、f1≈50Hz(6f1=299〜311Hz)で 1P に移る（京急新1000形の 53〜58.5Hz より低い）' },
   jrc313: { name: 'JR東海313系1・2次車 (東芝3レベルIGBT)', maker: '東芝', device: 'IGBT', lv: 3, ctrl: '1C2M', gear: [15, 98], wheel: 0.86, accel: 2.6, vmax: 120, decel: 4.3, fade: 3,
     segs: [{ f: 0, m: 'a', fc: [250, 420], rnd: 120, pol: 'dp4' }, { f: 12, m: 'a', fc: [840, 1000], rnd: 120 }, { f: 49, m: 'a', fc: [1000, 1200], rnd: 120 }, { f: 55.6, m: '1p' }],
     modes: [[680, 10, 1], [1100, 6, 0.6], [1700, 10, 0.55], [2900, 12, 0.3], [4300, 5, 0.18]],
@@ -1084,6 +1266,7 @@ const PRESETS = {
   /* ---- 205系（motor:'DC', dc.type:'ae'）: 211系と同じ MT61・CS57・界磁添加励磁。差分は歯車比 14:85・最高100km/h と回生の速度（rgPar/rgSw/fade をプリセットで指定）。
    *  磁気音の線は 211系（aeLines）をそのまま流用。歯車の2次は歯数14なのでコアの歯車chで自動的に 28fr（211系は32fr）になる */
   jnr205: { name: '国鉄205系 (MT61 界磁添加励磁)', maker: '国鉄/JR', device: '抵抗+添加励磁', lv: 2, motor: 'DC', ctrl: '1C8M (CS57)', slots: 42,
+    mgLines: [[1076, 0.019], [2382, 0.021], [57.5, 0.4], [237.5, 0.06]],   // 2026-11-04 停車中の補機の線: 客室録音[C] F_KtdURUr7I 2382Hz +14.5dB・1076Hz +10.9dB（BNxyH1KRWs0 は 1031Hz +5.4dB）。57.5/237.5Hz は 211系の MG の録音値のまま。録音[C]の停車中の線、発生源は推定（SIV・空調のインバータなど）。振幅は 2026-11-04 に×0.8（環境音の経路を ch3 に戻した分の補正。この日に足した線だけ）
     gear: [14, 85], wheel: 0.86, accel: 2.4, vmax: 100, decel: 3.5, fade: 20,
     dc: { type: 'ae', ser: 13, par: 11, Ra: 0.06, I0: 0.55, Ihi: 1.106, Ibr: 0.90, Iwf: 1.0, vB: 43.6, phiMin: 0.5, phiP4: 0.7, sat: 1.1667, fch: 180,
       rgPar: 65, rgSw: 50, swT: 0.45, swDip: 0.4, camDwell: 0.12, bridgeT: 0.3, phiRate: 0.6 },
@@ -1115,7 +1298,7 @@ const PRESETS = {
       db: 24, dbTop: 90, dbSaw: 0.06, camDwell: 0.12, bridgeT: 0.3 },
     // 磁気音の線（低音形＝前期MT55）: 録音の発車扇形 8/18/42fr（15fr・30fr は歯車でコアの歯車chが出す）、弱い 4/6/14fr
     dcLines: [[8, 0.6, 0.3], [18, 0.38, 1.4], [42, 0.3, 0.9], [4, 0.25, 1.7], [6, 0.16, 2.6], [14, 0.14, 0.8], [2, 0.1, 0.2], [84, 0.05, 2.0]],
-    mgLines: [[842, 0.016], [862, 0.016], [1447, 0.011]],
+    mgLines: [[842, 0.016], [862, 0.016], [1447, 0.011], [4695, 0.013]],   // 2026-11-04: 4695Hz を追加（客室録音[C] ueSvS8xdecE +14.4dB・JskkztHyhP8 +5.5dB の両方の停車中の線。発生源は推定。振幅は経路を ch3 に戻した分×0.8。842/862/1447Hz は従来のまま）
     modes: [[560, 6, 1], [900, 6, 0.7], [1450, 9, 0.5], [2600, 11, 0.3], [3900, 5, 0.15]],
     bconf: '中(発電ブレーキであること・直列/並列相当の段は資料 / 段の切替速度・失効速度12km/hは推定)',
     bnote: '発電ブレーキ（回生ではない。電流は主抵抗器で熱になり架線へは返さない）。段は直列13＋並列11相当の24段を90〜12km/hに等比で配した推定。約12km/h(推定10〜15)で失効し空気ブレーキへ',
@@ -1125,6 +1308,42 @@ const PRESETS = {
       '音は歯車15fr(fr=0.5895·v)が主、磁気音8/18/42fr・歯車2次30fr[C]。低音形(前期MT55)を既定とした(高音形MT55Aは120frなどが加わる[S])。直巻なので惰行中は磁気音が弱く残る程度。' +
       '主抵抗器ブロワ(地上線用の強制通風)はレバーサ投入で回り停車中も鳴る(音は推定)。MG(MH135-DM92)の842/862Hzの対と1447Hzが停車中も弱く鳴る[C]。起動加速度は2.0(4M4T)〜3.3(8M2T)、ここでは録音の傾き(約1.9)と最高速への到達から2.0とした(推定)。' +
       'ノッチ: P1=直列1段 P2=直列全段 P3=並列＋弱め界磁第2段 P4・P5=弱め界磁最終段。B キーでブロワ入/切' },
+  /* ---- 電機子チョッパ（motor:'DC', dc.type:'ch'。2026-11-04 追加）: 抵抗段なし。サイリスタチョッパの通流率 d で電機子電圧を連続に変え、ノッチごとの限流値一定で加速（VEH.stepCH）。
+   *  通流率100%（全界磁・全電圧）の後は弱め界磁。回生は昇圧チョッパ（d=1−E/V）で停止直前まで。
+   *  dc: fch=各相のチョッパ周波数[Hz], chN=相数, chMix=遠い相の重み, chLv=近接（機器箱）の音量, chMot=主電動機へ乗るリプルの比, chTilt=高次の傾き,
+   *      Ra=電機子回路の抵抗（限流値1に対する電圧降下比。起動直後の通流率 ≈ Ra）, vB=全界磁で E=架線電圧 の速度[km/h], dMin/dMax=通流率の範囲, Ilim=P1〜P5 の限流値,
+   *      phiP4/phiMin=P4/P5 の最弱界磁, wfCh/wfD=弱め界磁中のチョッパ音の大きさ(0=無音)と通流率, Iup/Idn=投入/オフの限流値の変化[1/s],
+   *      rgRes/rgR=回生で抵抗を入れる速度と抵抗, rgCut=回生電流を絞り始める速度, startHalf=起動直後に周波数を1/2にする時間[s]。jet:0（プリセット）=自己通風ファンの音なし */
+  jnr201: { name: '国鉄201系 (CH1 電機子チョッパ)', maker: '国鉄', device: 'サイリスタチョッパ', lv: 2, motor: 'DC', ctrl: '1C8M (CS53)',
+    gear: [15, 84], wheel: 0.86, accel: 2.5, vmax: 100, decel: 3.5, fade: 6,
+    // Ra 0.1・vB 54: 録音で起動直後の通流率が約0.12、約0.05/sで増えて推定47〜49km/hで100%（(dMax−Ra)·vB=47.5km/h、2.5km/h/s で d は 0.046/s）。案の Ra 0.06・vB 52 だと起動時 0.06 で録音より低い
+    dc: { type: 'ch', fch: 300, chN: 2, chMix: 0.3, chLv: 1, chMot: 0.15, chTilt: -0.3, Ra: 0.1, vB: 54, dMin: 0.05, dMax: 0.98, Ilim: [0.45, 0.75, 1.0, 1.0, 1.0], phiP4: 0.6, phiMin: 0.45, wfCh: 0.32, wfD: 0.15,
+      Iup: 1.2, Idn: 0.7, rgRes: 75, rgR: 0.27, rgCut: 90, startHalf: 0 },
+    // 磁気音の線（MT60）: 録音 Ajt_Cu6nT_8 の発車扇形で 4fr が最強、3/8/42/12fr。15/30fr は歯車でコアの歯車chが出す
+    dcLines: [[4, 0.85, 1.7], [3, 0.5, 0.6], [8, 0.42, 0.3], [42, 0.3, 0.9], [12, 0.12, 1.1], [84, 0.05, 2.0]],
+    modes: [[560, 6, 1], [900, 6, 0.7], [1450, 9, 0.5], [2600, 11, 0.3], [3900, 5, 0.15]],
+    bconf: '中(停止直前まで回生は録音2本 / 75km/h抵抗挿入・90km/h電流削減は資料で録音未確認 / 失効6km/hは推定)',
+    bnote: '昇圧チョッパの回生。300Hz列は停止の約2〜3秒前まで続く[C]。高速域は75km/hから0.27Ωを挿入、90km/hから電流を絞る（高速で回生電圧が架線を超えるための対策）[W]',
+    conf: 'チョッパ周波数300Hzは高(録音2本・1倍速でも確認) / 通流率の変化・ノッチの過渡は中 / 磁気音の線・弱め界磁中のチョッパ音・相数・限流値・ノッチ割当・チョッパ音の音量は推定',
+    src: '[W] ja.wikipedia 国鉄201系電車・電機子チョッパ制御 [C]YouTube Ajt_Cu6nT_8(中央線 チョッパ装置真上) / ALfYPccw3LU(大和路線 チョッパ制御器の上)',
+    note: '主制御器CS53＋チョッパ装置CH1、主電動機MT60(直流直巻150kW、定格1850rpm 52.1km/h・85%界磁、最弱45%)。チョッパは300Hzの整数倍の線(5kHzまで)で速度によらず一定[C]。' +
+      '発車から通流率が約0.05/sで増え(600Hz・1200Hzが谷になるのが d=0.5)、約20秒(推定47〜49km/h)で100%。300Hzの強さは d=0.5 付近で最大、100%に近づくと弱まる(電流リプル∝d(1−d))[C]。' +
+      'その後の弱め界磁中も約−10dBのチョッパ音が残る(1録音、推定)。ノッチ投入で約1秒で立ち上がり、オフで1〜2秒で消える。抵抗段もカムの音も無い。加速度は録音の歯車線から2.47km/h/s(6M4T 2.5)。P1=限流低 P2=中 P3=全界磁まで P4=弱め界磁60% P5=最弱45%(割当は推定)' },
+  metro6000: { name: '営団6000系 (電機子チョッパ)', maker: '日立/三菱', device: 'サイリスタチョッパ', lv: 2, motor: 'DC', ctrl: '1C8M (推定)', jet: 0,
+    gear: [15, 98], wheel: 0.86, accel: 3.3, vmax: 100, decel: 3.7, fade: 4,
+    // vB 75: 録音2本で通流率100%(チョッパ音が消える)は発車から約21〜23秒、加速度は3.2〜3.55km/h/s → 約66〜70km/h（案の vB 55=定格速度だと約13秒で消えて録音と合わない。推定）
+    dc: { type: 'ch', fch: 330, chN: 2, chMix: 0.25, chLv: 1, chMot: 0.15, chTilt: -0.3, Ra: 0.1, vB: 75, dMin: 0.05, dMax: 0.98, Ilim: [0.45, 0.75, 1.0, 1.0, 1.0], phiP4: 0.7, phiMin: 0.5, wfCh: 0, wfD: 0.15,
+      Iup: 1.2, Idn: 0.7, rgRes: 999, rgR: 0, rgCut: 999, startHalf: 0.8 },
+    // 磁気音の線: 録音2本の発車扇形で 38fr（スロット系、±1）が歯車15frに次いで強い、2次76fr、弱い 5/8/10fr
+    dcLines: [[38, 0.6, 0.9], [76, 0.12, 2.0], [5, 0.2, 1.7], [8, 0.15, 0.3], [10, 0.12, 2.6], [4, 0.1, 0.2]],
+    modes: [[620, 9, 1], [980, 6, 0.7], [1550, 9, 0.5], [2700, 11, 0.3], [4000, 5, 0.15]],
+    bconf: '高(停止直前まで回生・低速ほどチョッパ音が強くなるのは録音2本で一致) / 失効4km/hは推定',
+    bnote: '昇圧チョッパの回生。ブレーキ開始から330Hz列が速度の低下とともに強くなり(周囲比+3→+14dB)、低速では330Hzが弱まり660/1320Hzが相対的に強くなる。停止の約1秒前に消える[C]',
+    conf: 'チョッパ330Hz(各相、2相で合成660Hz)は高(資料と録音2本) / 磁気音38frは高(録音2本) / 起動時の165Hz・限流値・弱め界磁・車輪径・相の重み・vB・チョッパ音の音量は推定',
+    src: '[W] ja.wikipedia 営団6000系電車・電機子チョッパ制御 [C]YouTube h_vfDGQUJYI(6023F 明治神宮前→表参道) / kEWDwcKk8eE(6922 綾瀬→松戸)',
+    note: '1971年に世界初の回生ブレーキ付き電機子チョッパで営業運転。第09編成以降は2相2重(330Hz×2、合成660Hz)、第11編成から逆導通サイリスタ。主電動機は直流直巻145kW、歯車比98:15(6.53)。' +
+      '録音では各相の330Hzが最強(−32dB、2相の打消しが不完全)、990Hzは常に弱い[C]。発車から約21〜23秒で通流率100%に達しチョッパ音が消え、以後の力行では鳴らない[C]。' +
+      '起動直後0.5〜1秒だけ165Hzの奇数倍が出る(周波数を1/2に間引く、1録音、推定)[C]。加速度は録音の歯車線から3.2〜3.55km/h/s(仕様3.3)。1990年代以降の更新車(GTOチョッパ・VVVF)は別の音。2012年に千代田線のチョッパ車は運用終了' },
   /* ---- 電気機関車（motor:'DC', dc.type:'loco'）: 直巻電動機6台。VEH.stepLoco が 直列(S)→直並列(SP)→並列(P) の組合せ＋各組合せの抵抗段（バーニアで細分）＋弱め界磁 F1〜F4 と
    *  発電ブレーキ（抵抗で熱に。架線へ返さない）を扱う。正規化: 並列(P)時のモータ1台の電圧=1、SP=2/3、S=1/3（6台直列/3直2並/2直3並）。
    *  直巻の磁束 g(x)=x(1+sat)/(x+sat)（g(1)=1、x=界磁電流=β·Ia）。vR=全界磁・全並列で電流1(定格)になる速度。
@@ -1168,10 +1387,24 @@ const VEH = {
    *  rad は参考音源で確かめた2レベル機だけ（3レベル機は fc 帯そのものが主で、E231-0・223系・313系の低いキャリアが消えるため 0）。
    *  1300Hz は物理の折れ点（外被 ka=1 で約200〜300Hz）より高い、E233/E235 の帯構造に合わせた調整値。プリセットの同名項目（cab は cabEq）で上書き可 */
   /* 形式ごとのコアの音量項目（applyLev が毎回 lev に混ぜる）: slot=回転子スロット高調波（既定 0.04。E131 は実車録音から 0.12） */
+  /* 形式を選んだときにコアへ一度だけ送る静的な値（reset:true）。app/audio.js の applyPreset と Node テスト（T8）で共用 */
+  DEF_AXLES: [-7.95, -5.85, 5.85, 7.95, -12.05, -14.15, 12.05, 14.15],   // コアの既定（電車の台車位置）。機関車は preset.axles
+  coreSet(p) {
+    let h = 0; for (const ch of p.name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const sc = 0.88 + (h % 1000) / 1000 * 0.24;   // 車種ごとに車輪の鳴き周波数を少しずらす
+    return Object.assign(VEH.acoustic(p), { modes: p.modes, teeth: p.gear[0], gearK: p.gearLv || 1, gh2: p.gearH && p.gearH[0] !== undefined ? p.gearH[0] : 0.4, gh3: p.gearH && p.gearH[1] !== undefined ? p.gearH[1] : 0.2, dead: p.dead || 0, reset: true, t: { swa: 0 }, units: p.units || 1, wheel: p.wheel || 0.86,
+      dc: p.motor === 'DC' ? 1 : 0, slots: p.slots || 44, slotSb: p.slotSb !== undefined ? p.slotSb : 0.5, slotK: p.slotK || 0, fchHz: (p.dc && p.dc.fch) || 85,
+      dcKind: p.dc && p.dc.type === 'loco' ? 1 : p.dc && p.dc.type === 'ae' ? 2 : p.dc && p.dc.type === 'res' ? 3 : p.dc && p.dc.type === 'ch' ? 4 : 0, dcLines: p.dcLines || null, mgLines: p.mgLines || null,
+      ...(p.dc && p.dc.type === 'ch' ? { chN: p.dc.chN || 2, chMix: p.dc.chMix !== undefined ? p.dc.chMix : 0.3, chLv: p.dc.chLv !== undefined ? p.dc.chLv : 1, chTilt: p.dc.chTilt !== undefined ? p.dc.chTilt : -0.3, chMot: p.dc.chMot !== undefined ? p.dc.chMot : 0.15, jet: p.jet !== undefined ? p.jet : 1 } : {}),
+      blw: p.blower === '0' ? 1 : p.blower === '1000' ? 2 : p.blower === '103' ? 3 : 0, axles: p.axles || VEH.DEF_AXLES,
+      squeal: (p.squeal || [3270, 4830, 4980, 5580, 6150, 6300, 6680]).map(f => f * sc), rndHold: p.rndHold || 0.008, rndTau: p.rndTau || 0.003,
+      cpKind: (p.air && p.air.cp) || 'acRecip', brk: p.air || {} });
+  },
   coreLev(p) { return { slot: p.slotLv !== undefined ? p.slotLv : 0.04 }; },
+  /* kr（電磁力の空間2p次項の重み。コアの既定 0.01 と同じ値を毎回送る＝形式を切り替えても前の形式の値が残らない）。pm6=PMSM の 6f1（コアの同名項目）、magK=preset.magLv（PWM 由来の磁気音の倍率、既定1）、krA=preset.krAsync（非同期だけの kr、0=kr のまま） */
   acoustic(p) {
     const ac = p.motor !== 'DC' && p.device !== 'GTO';
-    return { hpHz: p.hpHz || (p.motor === 'DC' ? 40 : p.device === 'GTO' ? 80 : 150), rad: p.rad !== undefined ? p.rad : ac && p.lv !== 3 ? 1300 : 0, hum: p.hum !== undefined ? p.hum : ac ? 1 : 0, pm: p.motor === 'PMSM' ? 1 : 0, cab: p.cabEq !== undefined ? p.cabEq : ac ? 1 : 0 };
+    return { hpHz: p.hpHz || (p.motor === 'DC' ? 40 : p.device === 'GTO' ? 80 : 150), rad: p.rad !== undefined ? p.rad : ac && p.lv !== 3 ? 1300 : 0, hum: p.hum !== undefined ? p.hum : ac ? 1 : 0, pm: p.motor === 'PMSM' ? 1 : 0, pm6: p.pm6 || 0, magK: p.magLv !== undefined ? p.magLv : 1, kr: p.kr !== undefined ? p.kr : 0.01, krA: p.krAsync || 0, cab: p.cabEq !== undefined ? p.cabEq : ac ? 1 : 0 };
   },
   /* 全電圧点: '1p' の開始周波数。'1p' が無ければ最後の 'w3'（E131 は広域3Pで終わる）。どちらも無ければプリセットの fB、それも無ければ 60Hz */
   fBase(p, segs) {
@@ -1290,7 +1523,7 @@ const VEH = {
   newState() { return { kmh: 0, notch: 0, torq: 0, acc: 0, x: 0, gate: 0, airB: 0, segI: 0, fc: 0, bc: 0, mr: 1, cpOn: 0, cpRun: 0, cpL: 0, cpT: 0, hA: 0, hR: 0, hB: 0, hE: 0, hP: 0 }; },
   /* 1ステップ進め、DSPへ送るパラメータを返す */
   step(st, p, dt) {
-    if (p.motor === 'DC') return p.dc.type === 'loco' ? VEH.stepLoco(st, p, dt) : p.dc.type === 'ae' ? VEH.stepAE(st, p, dt) : p.dc.type === 'res' ? VEH.stepRes(st, p, dt) : VEH.stepDC(st, p, dt);
+    if (p.motor === 'DC') return p.dc.type === 'loco' ? VEH.stepLoco(st, p, dt) : p.dc.type === 'ae' ? VEH.stepAE(st, p, dt) : p.dc.type === 'res' ? VEH.stepRes(st, p, dt) : p.dc.type === 'ch' ? VEH.stepCH(st, p, dt) : VEH.stepDC(st, p, dt);
     const n = st.notch, kmh = st.kmh, fB = VEH.fBase(p), vB = VEH.kmhAt(p, fB) * 1.3;   // 定トルク域は全電圧到達後もすべり増で少し延びる（PMSM はすべり0だが、16000系の録音で約60km/hまで一定だったのでそのまま使う経験値）
     // --- トルク指令
     let tgt = 0, beta = 0;
@@ -1303,6 +1536,22 @@ const VEH = {
       tgt = elecOk ? -Math.min(1, beta) : 0;
     }
     if (kmh <= 0.01 && tgt < 0) tgt = 0;
+    // 起動前の励磁（p.pmStart [s]、PMSM の16000系東芝）: 停車中から力行を入れると、まず pmStart 秒はトルク0のまま励磁音（コアの swa/swf）が鳴り、その後に動き出す。
+    //   走行中の再力行では鳴らさない。ノッチを戻すと取り消し
+    //   swf は振幅が0になっても直前の値のまま送る（取り消し・鳴り終わりで周波数が跳ぶと、コアの補間で減衰中に上向きのチャープが出る）。次の発車の前に開始の 1050Hz へ戻す
+    let swa = 0, swf = st.pmF || 1050;
+    if (p.pmStart) {
+      if (n <= 0) st.pmT = -1;
+      else if (st.pmT === undefined || st.pmT < 0) st.pmT = kmh <= 0.05 ? 0 : 99;
+      else st.pmT += dt;
+      if (n > 0 && st.pmT < p.pmStart) tgt = 0;
+      const u = st.pmT;   // 客室録音[Y7] 13:10.75〜: 1041 → 814(+0.25s) → 457(+0.75s) → 334(+1.25s) → 291Hz(+1.5s) ≈ 250+800·e^(−t/0.5)
+      if (u >= 0 && u < p.pmStart + 0.3) { swf = 250 + 800 * Math.exp(-u / 0.5); swa = Math.min(1, u / 0.04) * (u < p.pmStart ? 1 : 1 - (u - p.pmStart) / 0.3) * (p.pmLv !== undefined ? p.pmLv : 0.01); }
+      if (u === 0) swf = 1050;
+      else if (n <= 0 && kmh <= 0.05 && st.torq === 0 && (st.pmIdle = (st.pmIdle || 0) + dt) > 0.5) swf = 1050;   // 停車して0.5秒たてば開始の周波数へ戻す（振幅0なので音は出ない）
+      if (n > 0 || kmh > 0.05) st.pmIdle = 0;
+      st.pmF = swf;
+    }
     const up = tgt > st.torq ? 1.0 : 2.5;                                   // ジャーク制限 [1/s]
     st.torq += Math.max(-up * dt, Math.min(up * dt, tgt - st.torq));
     if (Math.abs(st.torq) < 1e-4 && tgt === 0) st.torq = 0;
@@ -1360,7 +1609,7 @@ const VEH = {
     st.segI = i; st.segK = segK; st.segL = segs; st.fc = fc; st.held = held;
     const mode = held || s.m === 'a' ? 0 : s.m === '1p' ? 2 : 1;
     return {
-      t: { f1, a: am, fc: fc || 1000, I, gate: st.gate, flx: Math.min(1, fBs / Math.max(1, f1)), rps: VEH.motorRps(p, st.kmh), vms: st.kmh / 3.6, torq: tq, regen: regen ? 1 : 0,
+      t: { f1, a: am, fc: fc || 1000, I, gate: st.gate, flx: Math.min(1, fBs / Math.max(1, f1)), rps: VEH.motorRps(p, st.kmh), vms: st.kmh / 3.6, torq: tq, regen: regen ? 1 : 0, swa, swf,
         bc: st.bc, hA: st.hA, hR: st.hR, hB: st.hB, hE: st.hE, cp: st.cpRun, cpP: st.cpOn, cpL: st.cpL, hP: st.hP, wrps: st.kmh / 3.6 / (Math.PI * p.wheel) }, ev,
       mode, N: s.m === 'w3' ? 3 : (s.n || 3),
       lv3: (s.lv || p.lv) === 3 ? 1 : 0, cm: p.device === 'GTO' ? 0.3 : 0, rnd: s.rnd && fc && !(held && s.m === 's') ? s.rnd / 2 / fc : 0, dead: p.dead || 0, fcJump: jump,
@@ -1375,6 +1624,7 @@ const VEH = {
     const q = p.dc;
     if (q.type === 'loco') return VEH.locoPlan(p);
     if (q.type === 'res') return VEH.resPlan(p);
+    if (q.type === 'ch') return VEH.chPlan(p);
     if (p._dc && p._dc.q === q) return p._dc;
     const geo = (a, b, n) => Array.from({ length: n }, (_, i) => a * Math.pow(b / a, i / (n - 1)));
     const Rs = geo(0.5 / q.I0, q.Ra, q.ser);                         // 直列: 1段目の起動電流 I0
@@ -1829,6 +2079,103 @@ const VEH = {
         blw: B ? { kind: p.blower, r0: B.r0, r1: B.r1, on0: B.on0, on1: B.on1 } : null },
     };
   },
+  /* ===== 電機子チョッパ（201系・営団6000系、dc.type:'ch'）: 抵抗段なし。サイリスタチョッパの通流率 d で電機子電圧 Vm=d を連続に変え、ノッチごとの限流値で定電流加速 =====
+   * 正規化は stepDC と同じ（E = φ·v/vB、I = (Vm − E)/Ra、全電圧=1）。d が dMax に届いたら（全界磁・全電圧）P4 以上は弱め界磁、P3 以下は特性で垂下（stepDC と同じ2乗の垂下）。
+   * 回生は昇圧チョッパ: 電機子電圧 E − |I|·R を通流率 1−d で架線電圧まで上げる → d = 1 − (E − |I|·R)。高速は d が dMin を割らないよう弱め界磁で E を抑え、
+   *   rgRes[km/h] 以上は抵抗 rgR を挿入、rgCut 以上は電流を (rgCut/v)² で絞る（201系の高速域の対策[W]）。カムの段が無いので ev:'cam' は出さない。
+   * コアへ: chD=通流率（音の各次の強さ |sin(πnd)|）, chA=チョッパ音の大きさ（電流リプル ∝ |I|·4d(1−d)）, chHz=チョッパ周波数（起動後 startHalf 秒だけ 1/2） */
+  chPlan(p) {
+    const q = p.dc;
+    if (p._dc && p._dc.q === q) return p._dc;
+    const fr = kmh => VEH.rotorHz(p, Math.max(0, kmh)), vFull = (q.dMax - q.Ra) * q.vB;   // 限流値1で通流率 dMax に届く速度
+    const segs = [{ f: 0, m: 'ch' }, { f: fr(vFull), m: 'wf' }];
+    const bsegs = [{ f: fr(p.fade), m: 'rg' }]; if (q.rgRes < p.vmax) bsegs.push({ f: fr(q.rgRes), m: 'rgR' });
+    const D = { q, ch: 1, segs, bsegs, vFull };
+    Object.defineProperty(p, '_dc', { value: D, configurable: true, writable: true, enumerable: false });
+    if (!p.segs || p.segs._gen !== q) { p.segs = segs; Object.defineProperty(segs, '_gen', { value: q }); }
+    if (!p.bsegs || p.bsegs._gen !== q) { p.bsegs = bsegs; Object.defineProperty(bsegs, '_gen', { value: q }); }
+    return D;
+  },
+  stepCH(st, p, dt) {
+    const D = VEH.chPlan(p), q = D.q, n = st.notch, kmh = st.kmh, v = kmh / q.vB;
+    if (!st.dc || st.dc.p !== p) st.dc = { p, ph: 'off', Il: 0, Il0: 1, Ion: 0, Ip: 0, Ib: 0, tb: 0, phi: 1, phiB: 1, d: 0, tOn: 99 };
+    const S = st.dc; let Itgt = 0;
+    const clampD = d => Math.min(q.dMax, Math.max(q.dMin, d));
+    // ---- 力行: 限流値 Il を Iup[1/s] で上げ（投入から約1秒で立ち上がる録音）、ノッチオフは Idn[1/s] で下げる（1〜2秒で消える）
+    if (n > 0) {
+      if (S.ph === 'off') { S.ph = 'ch'; S.phi = 1; S.tOn = 0; }
+      const It = q.Ilim[n - 1]; S.Il += Math.max(-q.Iup * dt, Math.min(q.Iup * dt, It - S.Il));
+      const Il = S.Il, pm = n >= 5 ? q.phiMin : n === 4 ? q.phiP4 : 1;
+      const need = Math.min(1, (q.dMax - Il * q.Ra) / Math.max(1e-3, v));   // 通流率 dMax のまま電流 Il を保つ磁束
+      if (need >= 1) { S.ph = 'ch'; S.phi = 1; S.d = clampD(v + Il * q.Ra); Itgt = Il; }          // 通流率制御（定電流）
+      else if (pm >= 1) { S.ph = 'full'; S.phi = 1; S.d = q.dMax; const vE = q.vB * (q.dMax - Il * q.Ra); Itgt = Il * (vE / Math.max(vE, kmh, 1e-3)) ** 2; }   // P3 以下: 全界磁の特性
+      else { S.ph = 'wf'; S.d = q.dMax;
+        if (need >= pm) { S.phi = need; Itgt = Il; }
+        else { S.phi = pm; const vE = q.vB * (q.dMax - Il * q.Ra) / pm; Itgt = Il * (vE / Math.max(vE, kmh, 1e-3)) ** 2; } }
+      S.Ion = Itgt; S.Il0 = S.Il;
+    } else if (S.ph !== 'off') {
+      S.Il = Math.max(0, S.Il - q.Idn * dt);
+      Itgt = n < 0 ? 0 : S.Ion * S.Il / Math.max(1e-6, S.Il0);   // オフ直前の電流から比例で下げる。ブレーキを入れたら即切る
+      if (S.ph === 'ch') S.d = clampD(S.phi * v + Itgt * q.Ra);
+      if (n < 0 || S.Il <= 0) { S.ph = 'off'; S.Il = 0; S.Ion = 0; S.phi = 1; Itgt = 0; }
+    }
+    S.tOn += dt;
+    S.Ip += (Itgt - S.Ip) * Math.min(1, dt / (Itgt > S.Ip ? 0.04 : 0.1));   // 電機子回路の時定数（stepDC と同じ）
+    if (S.Ip < 1e-4 && Itgt === 0) S.Ip = 0;
+    // ---- ブレーキ: 昇圧チョッパの回生、fade で失効 → 空気（stepDC と同じブレンディング）
+    let tgt = 0, beta = 0;
+    if (n < 0) { beta = n <= -8 ? 1.1 : -n / 7; tgt = n > -8 && kmh > p.fade ? -Math.min(1, beta) : 0; }
+    if (kmh <= 0.01 && tgt < 0) tgt = 0;
+    const up = tgt > S.tb ? 1.0 : 2.5;
+    S.tb += Math.max(-up * dt, Math.min(up * dt, tgt - S.tb));
+    if (Math.abs(S.tb) < 1e-4 && tgt === 0) S.tb = 0;
+    const regen = S.tb < -0.003;
+    let IbT = 0, R = q.Ra;
+    if (regen) {
+      IbT = S.tb * (kmh > q.rgCut ? (q.rgCut / kmh) ** 2 : 1);
+      if (kmh > q.rgRes) R += q.rgR;
+      S.phiB = Math.max(q.phiMin, Math.min(1, (1 - q.dMin + Math.abs(IbT) * R) / Math.max(1e-3, v)));
+    } else S.phiB = 1;
+    S.Ib += (IbT - S.Ib) * Math.min(1, dt / 0.04);
+    if (Math.abs(S.Ib) < 1e-4 && IbT === 0) S.Ib = 0;
+    if (regen) S.d = clampD(1 - (S.phiB * v - Math.abs(S.Ib) * R));
+    st.torq = S.phi * S.Ip + S.tb;
+    // ---- 加減速度（stepDC と同じ）
+    let a = p.accel * S.phi * S.Ip;
+    const dB = n < 0 ? (n <= -8 ? p.decel * 1.1 : p.decel * beta) : 0;
+    st.airB = n < 0 ? Math.max(0, 1 - Math.max(0, -tgt) / Math.max(1e-3, Math.min(1, beta))) : 0;
+    const bcT = n <= -8 ? 1.25 : n < 0 ? beta * (0.08 + 0.92 * st.airB) : 0;
+    VEH.air(st, p, dt, n, bcT, 0.45, 0.22, 0.75);   // BC圧・込め/緩め/非常の排気・元空気だめと空気圧縮機
+    a -= (kmh > 0 ? 0.03 + 0.000025 * kmh * kmh : 0) + dB;
+    if (kmh <= 0 && a < 0) a = 0;
+    st.acc += (a - st.acc) * Math.min(1, dt * 4);
+    const kmhPrev = kmh, accPrev = st.acc;
+    st.kmh = Math.max(0, Math.min(p.vmax + 5, kmh + st.acc * dt));
+    if (st.kmh === 0 && n <= 0) st.acc = 0;
+    st.x += st.kmh / 3.6 * dt;
+    let ev = null;
+    if (kmhPrev > 0 && st.kmh === 0) ev = { type: 'stop', amp: Math.min(1.5, (0.25 + st.bc) * Math.min(1.5, -accPrev / 3)) };
+    st.gate = 0; st.prevN = n;
+    // ---- チョッパ音: 力行（通流率制御）・回生は |I|·4d(1−d)。通流率100%（全界磁特性・弱め界磁）では d≈dMax なので自然に消える。
+    //   201系は弱め界磁中も約−10dB のチョッパ音が残り、パターンは d≈0.15/0.85 で固定（録音 Ajt_Cu6nT_8 36〜60s、1録音）→ 案の「4d(1−d)×wfCh」だと d=dMax で −22dB しか残らず録音と合わないので、
+    //   弱め界磁中は通流率 wfD（界磁側のサイリスタの断続、推定）・大きさ wfCh で別に鳴らす（6000系は wfCh 0 で無音）
+    const Ia = S.Ip + S.Ib, d = S.d, rip = 4 * d * (1 - d);
+    const wfOn = !regen && S.ph === 'wf' && q.wfCh > 0;
+    const chD = wfOn ? q.wfD : d, chA = regen ? Math.min(1.3, Math.abs(S.Ib)) * rip : wfOn ? Math.min(1.3, S.Ip) * q.wfCh : Math.min(1.3, S.Ip) * rip;
+    const chHz = S.tOn < (q.startHalf || 0) ? q.fch / 2 : q.fch;
+    // ---- 表示用の段
+    const segs = regen ? p.bsegs : p.segs, seg = regen ? (p.bsegs.length > 1 && kmh > q.rgRes ? 1 : 0) : S.ph === 'wf' || S.ph === 'full' ? 1 : 0, s = segs[seg];
+    st.segI = seg; st.segK = regen ? 'b' : 'p'; st.segL = segs;
+    const fM = VEH.rotorHz(p, st.kmh), flux = regen ? S.phiB : S.phi;
+    return {
+      t: { f1: 0, a: 0, fc: 1000, I: 0, gate: 0, rps: VEH.motorRps(p, st.kmh), vms: st.kmh / 3.6, torq: st.torq, regen: regen ? 1 : 0,
+        bc: st.bc, hA: st.hA, hR: st.hR, hB: st.hB, hE: st.hE, cp: st.cpRun, cpP: st.cpOn, cpL: st.cpL, hP: st.hP, wrps: st.kmh / 3.6 / (Math.PI * p.wheel), dcI: Math.abs(Ia), fch: 0, dcF: flux,
+        chD, chA, chHz }, ev,
+      mode: 0, N: 3, lv3: 0, cm: 0, rnd: 0, dead: 0, fcJump: false, pol: 0, dc: 1,
+      info: { f1: fM, fc: 0, seg, segs, mode: s.m, n: s.n, am: 0, fr: fM, regen, I: Ia, held: 0,
+        dc: { ch: 1, ph: regen ? (seg ? 'rgR' : 'rg') : S.ph, k: 0, phi: flux, Ia, d: S.ph === 'off' && !regen ? 0 : d, chA, chHz, fch: chA > 0.02 ? 1 : 0, air: n < 0 && !regen && st.kmh > 0 } },
+    };
+  },
   /* 走行音アナライザー/旧シミュレーター形式 {segments:[{fromF,pulse,cMode,cBase,cK}]} を変換 */
   fromAnalyzer(o) {
     const segs = (o.segments || []).map(s => {
@@ -1859,18 +2206,26 @@ const AIR_SPEC = {
   metro18000: { cp: 'scroll', brake: 'ecb', shoe: 'comp', disc: 0.3, src: '推定（16000系と同じスクロール）' },
   tokyu2020: { cp: 'oilFree', brake: 'ecb', shoe: 'comp', disc: 0.3, src: 'VV180-T オイルフリーレシプロ（クノール）' },
   tokyu9000: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: '推定（VVVF車なので三相交流駆動のレシプロとした。資料未確認）' },
+  tokyu5000: { cp: 'screw', brake: 'ecb', shoe: 'comp', disc: 0, src: 'AR1444-RWS20A/C スクリュー（6次車以降は三菱スクロール MBU1600YG-1）、回生併用電気指令式電磁直通。disc は未確認(推定0)' },
+  keio8000: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: 'HS-20D レシプロ（駆動電源は未確認・推定）、一部編成はスクリュー RWS20J に交換。HRDA-1 全電気指令式' },
   tokyu8500: { cp: 'dcRecip', brake: 'seld', shoe: 'comp', disc: 0, src: 'HS-20G 低騒音形レシプロ・直流1500V駆動（18次車以降）。ブレーキは HSC-R 電磁直通（記憶による。要確認）' },
   keikyu: { cp: 'screw', brake: 'ecb', shoe: 'comp', disc: 0, src: 'SL-22 スクリュー（クノール）' },
   keikyu1000t: { cp: 'screw', brake: 'ecb', shoe: 'comp', disc: 0, src: '推定（2100形と同じクノール製スクリュー）' },
+  keisei3700: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: 'C-2000LM レシプロ（交流駆動かは未確認・推定）、回生併用電気指令式' },
   hankyu8300: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: '推定（資料なし）' },
+  hankyu1000: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: '推定（Tc に CP を積むとだけ。方式・型番は未確認）' },
   jrw207: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0.3, src: '推定（資料なし）' },
   jrw223: { cp: 'screw', brake: 'ecb', shoe: 'comp', disc: 0.3, src: 'WMH3098-WRC1600 スクリュー・除湿装置一体（クノール）' },
+  jrw225: { cp: 'screw', brake: 'ecb', shoe: 'comp', disc: 0.3, src: 'WMH3098-WRC1600 スクリュー・除湿装置一体（クノール）。100番台3次車以降は三菱スクロール' },
+  keihan13000: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: 'HS-10 交流駆動レシプロ 1000L/min・全電気指令式電磁直通（回生優先）。disc は推定' },
   jrc313: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0.5, src: 'レシプロ・交流電動機（低騒音化）' },
   odakyu1000: { cp: 'acRecip', brake: 'seld', shoe: 'comp', clasp: 1, disc: 0, src: '電磁直通・両抱き踏面。CPは推定（未更新車。SIV車なので交流駆動のレシプロとした）' },
   jnr211: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0.3, src: 'C2000M系レシプロ（型番はJR東海5000番台2次車の C-MH3093-C2000ML。録音の1000/3000番台の型番は未確認）' },
   jre205_5000: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0.3, src: '0番台から流用(MH3075-C2000M レシプロ・三相誘導電動機)。改造で変わったかは未確認(推定)' },
   jnr205: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0.3, src: 'MH3075-C2000M レシプロ・三相誘導電動機' },
   jnr103: { cp: 'dcRecip', brake: 'seld', shoe: 'cast', disc: 0, src: 'MH113-C2000M レシプロ歯車直結・直流電動機、SELD電磁直通' },
+  jnr201: { cp: 'acRecip', brake: 'seld', shoe: 'cast', disc: 0, src: 'MH3075A-C2000M レシプロ・誘導電動機駆動、SELR回生併用電磁直通。制輪子は推定（鋳鉄）' },
+  metro6000: { cp: 'acRecip', brake: 'ecb', shoe: 'comp', disc: 0, src: 'C-2000M系レシプロ（1次量産車 C-2000M、4次車 C-2000L）。ATC連動の電気指令式。駆動方式・制輪子は推定' },
   ef64: { cp: 'loco', brake: 'auto', shoe: 'cast', disc: 0, src: 'MH92B-C3000、EL14AS自動空気ブレーキ' },
   ef64_1000: { cp: 'loco', brake: 'auto', shoe: 'cast', disc: 0, src: 'MH3064A-C3000、EL14AS自動空気ブレーキ' },
 };
@@ -1888,7 +2243,7 @@ const RailCore = new Function(CORE_SRC + ';return RailCore;')();
 
 /* ---------- 聴取位置: チャンネルごとの [LPF, ピーク周波数, ピーク利得dB, 利得]（0=磁気 1=近接 2=機械 3=軌道）---------- */
 const POS = {
-  cabin:    { ch: [[1800, 260, 4, 0.5], [1100, 1000, 0, 0.06], [1800, 900, 0, 0.55], [2200, 250, 3, 0.9], [5500, 3000, 2, 0.55]], wet: 0.12 },
+  cabin:    { ch: [[1800, 260, 4, 0.5], [1100, 1000, 0, 0.06], [1800, 900, 0, 0.55], [3500, 125, 4, 0.9], [5500, 3000, 2, 0.55]], wet: 0.12 },   // 軌道: LPF 2200→3500Hz・山 250Hz+3dB→125Hz+4dB（2026-11-04 客室録音14本[C]の走行中は 3k〜8kHz が不足、63〜157Hz の床の唸りが約6dB不足。audio.js applyPos）
   under:    { ch: [[10000, 1000, 0, 1.15], [14000, 1000, 0, 1.0], [10000, 1000, 0, 1.0], [10000, 1000, 0, 1.1], [14000, 1000, 0, 1.1]], wet: 0.0 },
   cab:      { ch: [[700, 300, 2, 0.12], [600, 300, 0, 0.0], [900, 300, 0, 0.12], [2400, 300, 2, 0.85], [4500, 2600, 3, 0.5]], wet: 0.12 },
   platform: { ch: [[12000, 1000, 0, 1.0], [14000, 1000, 0, 0.8], [12000, 1000, 0, 0.9], [12000, 1000, 0, 0.9], [14000, 1000, 0, 1.1]], wet: 0.03 },
@@ -1967,18 +2322,10 @@ function makeIR(ctx, rt) {   // 合成インパルス応答: 指数減衰ノイ�
     const s = 1 / Math.sqrt(e); for (let i = 0; i < len; i++) d[i] *= s; }
   return b;
 }
-const WET_K = 2.1;
-const DEF_AXLES = [-7.95, -5.85, 5.85, 7.95, -12.05, -14.15, 12.05, 14.15];   // コアの既定（電車の台車位置）。機関車は preset.axles   // 客室 wet 0.12×2.1=0.25 → 直接音比 約−12dB
+const WET_K = 2.1;   // 客室 wet 0.12×2.1=0.25 → 直接音比 約−12dB
 function applyPreset() {
   if (!eng.ready) return;
-  let h = 0; for (const ch of preset.name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const sc = 0.88 + (h % 1000) / 1000 * 0.24;   // 車種ごとに車輪の鳴き周波数を少しずらす
-  eng.post(Object.assign(VEH.acoustic(preset), { modes: preset.modes, teeth: preset.gear[0], dead: preset.dead || 0, reset: true, units: preset.units || 1, wheel: preset.wheel || 0.86,
-    dc: preset.motor === 'DC' ? 1 : 0, slots: preset.slots || 44, slotSb: preset.slotSb !== undefined ? preset.slotSb : 0.5, slotK: preset.slotK || 0, fchHz: (preset.dc && preset.dc.fch) || 85,
-    dcKind: preset.dc && preset.dc.type === 'loco' ? 1 : preset.dc && preset.dc.type === 'ae' ? 2 : preset.dc && preset.dc.type === 'res' ? 3 : 0, dcLines: preset.dcLines || null, mgLines: preset.mgLines || null,
-    blw: preset.blower === '0' ? 1 : preset.blower === '1000' ? 2 : preset.blower === '103' ? 3 : 0, axles: preset.axles || DEF_AXLES,
-    squeal: (preset.squeal || [3270, 4830, 4980, 5580, 6150, 6300, 6680]).map(f => f * sc), rndHold: preset.rndHold || 0.008, rndTau: preset.rndTau || 0.003,
-    cpKind: (preset.air && preset.air.cp) || 'acRecip', brk: preset.air || {} }));
+  eng.post(VEH.coreSet(preset));   // 形式→コアへ送る静的な値（vehicle/veh.js。Node テスト T8 も同じ値で鳴らす）
   applyPos(); applyLev();
 }
 function applyPos() {
@@ -1987,8 +2334,14 @@ function applyPos() {
   let chs = posKey === 'cab' && preset.frontM ? [[900, 300, 2, 0.35], [600, 300, 0, 0.02], [1100, 300, 0, 0.35], P.ch[3], [5000, 2600, 3, 0.7]] : P.ch;   // 先頭車が電動車
   // IGBT・SiC 車（VEH.acoustic の cab。rad とは別。参考にした客室録音がどれも遮音の良い新しい車体なので）の客室: 磁気音の LPF を 1800→2600Hz。2fc（1.5〜2.4kHz）・27P の線（1.9〜3kHz）が主役なので削りすぎない（KATO E233/E235 試聴音源で 2〜3kHz の帯が明瞭）。
   //   直流機・GTO 車は 1800Hz のまま（実車録音に合わせた従来の調整を保つ）
-  //   軌道音 ch3 の LPF 900Hz も IGBT・SiC 車だけ（ch3 には環境音の MG の線・継目音も入るので、録音に合わせた直流機・GTO 車は 2200Hz のまま）
-  if (posKey === 'cabin' && VEH.acoustic(preset).cab) chs = [[2600].concat(chs[0].slice(1)), chs[1], chs[2], [900].concat(chs[3].slice(1)), chs[4]];
+  //   軌道音 ch3 の LPF は IGBT・SiC 車だけ 4000Hz（2026-11-04: 旧 900Hz。客室録音14本[C](lJAeB7oUcik, QKtMpbVcnRc ほか)の走行中は 3.2k〜8kHz がアプリより 8〜21dB 強く、
+  //     E233 で 4kHz 帯が −44→−34dB（録音 −33）。環境音も ch3/ch6 を通る（左右の広がりを保つため。4000Hz にしたので客室でも空調の高域が残る））。直流機・GTO 車は settings.js の 3500Hz
+  //   磁気音の利得 0.5→0.35 も IGBT・SiC 車だけ（2026-11-04 客室録音[C] E233 lJAeB7oUcik・E235 QKtMpbVcnRc・E231 vQU83g6Zg9E ほかで 2f1 の線の周囲比 約13.7dB、アプリ 17.5〜19.9dB）
+  if (posKey === 'cabin' && VEH.acoustic(preset).cab) chs = [[2600, chs[0][1], chs[0][2], 0.35], chs[1], chs[2], [4000].concat(chs[3].slice(1)), chs[4]];
+  //   GTO 車も磁気音の利得は 0.35（同じく客室録音[C] 209系 Jyk94U-eSCk・URtUuGveb5U / 京急2100形 OL5bWpXcZL8 で線らしさ ton50 0.9%、アプリ 8.5〜10.3%・2f1 の周囲比が +2〜4dB）。LPF は 1800Hz のまま。直流機は 0.5 のまま
+  else if (posKey === 'cabin' && preset.device === 'GTO') chs = [chs[0].slice(0, 3).concat([0.35]), chs[1], chs[2], chs[3], chs[4]];
+  //   cabMag（形式ごと, dB）: 客室だけ磁気音を下げる。車体の遮音が良く、台車近くでは大きい VVVF 音が客室ではほとんど聞こえない形式（16000系: 台車間近の録音で 2fc〜4fc 帯が最大帯と同程度、客室録音では 63Hz 帯より16〜21dB下）
+  if (posKey === 'cabin' && preset.cabMag) chs = [chs[0].slice(0, 3).concat([chs[0][3] * Math.pow(10, preset.cabMag / 20)])].concat(chs.slice(1));
   const CH7 = [0, 1, 2, 3, 4, 0, 3];   // 7ch → POS の5項目（5=磁気R は磁気、6=軌道R は軌道と同じEQ）
   CH7.forEach((j, k) => { const c = chs[j], ch = eng.chains[k]; ch.lp.frequency.setTargetAtTime(c[0], t, 0.05); ch.pk.frequency.setTargetAtTime(c[1], t, 0.05); ch.pk.gain.setTargetAtTime(c[2], t, 0.05); ch.g.gain.setTargetAtTime(c[3], t, 0.05); });
   eng.wet.gain.setTargetAtTime(P.wet * lev.reverb * WET_K, t, 0.05);
@@ -2047,20 +2400,106 @@ function setNotch(v) { st.notch = Math.max(-8, Math.min(5, v)); document.querySe
 setNotch(0);
 function stopDemo() { demo = null; $('demoBtn').classList.remove('on'); }
 
-for (const k in PRESETS) { const o = document.createElement('option'); o.value = k; o.textContent = PRESETS[k].name; $('presetSel').appendChild(o); }
-const customOpt = document.createElement('option'); customOpt.value = 'custom'; customOpt.textContent = 'カスタム（JSON）'; $('presetSel').appendChild(customOpt);
+/* ---------- 形式の選択: 検索つきの一覧（事業者別／方式別）、最近使った形式、‹ › と [ ] で前後、URL の #キー で共有 ---------- */
+const OPS = [['JR東日本', /^(e\d|jre)/], ['JR西日本', /^jrw/], ['JR東海', /^jrc/], ['東急', /^tokyu/], ['京王', /^keio/], ['小田急', /^odakyu/], ['京急', /^keikyu/], ['京成', /^keisei/],
+  ['東京メトロ・営団', /^metro/], ['阪急', /^hankyu/], ['京阪', /^keihan/], ['国鉄の電車', /^jnr/], ['電気機関車', /^ef/]];   // キーの頭で事業者を決める。新しい事業者の形式を足したらここにも足す（無いと「その他」）
+const KINDS = ['VVVF（GTO）', 'VVVF（IGBT）', 'VVVF（SiC）', '直流モータ（抵抗・界磁制御）', '直流モータ（電機子チョッパ）', '直流 電気機関車'];
+const pOp = k => k === 'custom' ? 'カスタム' : (OPS.find(o => o[1].test(k)) || ['その他'])[0];
+const pKind = p => p.motor === 'DC' ? ((p.dc || {}).type === 'loco' ? KINDS[5] : (p.dc || {}).type === 'ch' ? KINDS[4] : KINDS[3]) : /SiC/.test(p.device) ? KINDS[2] : /GTO/.test(p.device) ? KINDS[0] : KINDS[1];
+const pBadge = p => p.motor === 'DC' ? ['dc', { loco: '抵抗制御', ch: 'チョッパ', ae: '添加励磁', res: '抵抗制御' }[(p.dc || {}).type] || '界磁チョッパ']
+  : [/SiC/.test(p.device) ? 'sic' : /GTO/.test(p.device) ? 'gto' : /IGBT/.test(p.device) ? 'igbt' : 'etc', (/ハイブリッド/.test(p.device) ? 'Hy-SiC' : p.device) + (p.lv === 3 ? '・3L' : '') + (p.motor === 'PMSM' ? '・PM' : '')];
+const pSplit = name => { const m = /^(.*?)\s*\((.*)\)$/.exec(name); return m ? [m[1], m[2]] : [name, '']; };   // 'E233系 (三菱IGBT)' → ['E233系', '三菱IGBT']
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } };
+let recent = []; try { recent = JSON.parse(lsGet('rss.recent') || '[]').filter(k => Object.prototype.hasOwnProperty.call(PRESETS, k) && k !== 'custom'); } catch (e) { }
+const pk = { view: lsGet('rss.view') === 'kind' ? 'kind' : 'op', items: [], act: -1 };
+const pkOpen = () => !$('pk').hidden;
+function pkShow(on) {
+  $('pk').hidden = !on; $('presetBtn').setAttribute('aria-expanded', on);
+  if (on) { const P = $('pk'); P.style.left = ''; if (getComputedStyle(P).position === 'absolute') { const r = P.getBoundingClientRect(); if (r.right > innerWidth - 8) P.style.left = Math.min(0, innerWidth - 8 - r.right) + 'px'; }   // 右にはみ出す窓幅では左へずらす
+    $('pkQ').value = ''; pkRender(); if (matchMedia('(hover:hover)').matches) $('pkQ').focus(); }   // スマホでは開いた瞬間にキーボードを出さない
+  else if (document.activeElement && $('pk').contains(document.activeElement)) $('presetBtn').focus();
+}
+function pkRender() {
+  const norm = s => String(s).normalize('NFKC').toLowerCase(), toks = norm($('pkQ').value).split(/\s+/).filter(Boolean);
+  const hit = k => { const p = PRESETS[k], h = norm([p.name, p.maker, p.device, p.motor === 'PMSM' ? 'PMSM PM 永久磁石同期' : p.motor === 'DC' ? '直流' : '誘導', p.lv === 3 ? '3レベル' : '', p.ctrl || '', pOp(k), pKind(p), k].join(' ')); return toks.every(t => h.includes(t)); };
+  const groups = new Map();
+  const rc = toks.length || recent.length < 2 ? [] : recent.slice(0, 4);   // 今の形式1つだけなら出さない
+  if (rc.length) groups.set('最近使った形式', rc);
+  for (const g of pk.view === 'op' ? OPS.map(o => o[0]).concat('その他', 'カスタム') : KINDS) groups.set(g, []);
+  for (const k in PRESETS) if (hit(k)) { const g = pk.view === 'op' || k === 'custom' ? pOp(k) : pKind(PRESETS[k]); (groups.get(g) || groups.set(g, []).get(g)).push(k); }
+  const L = $('pkList'); L.innerHTML = ''; pk.items = [];
+  for (const [g, ks] of groups) {
+    if (!ks.length) continue;
+    const h = document.createElement('div'); h.className = 'pk-g'; h.setAttribute('role', 'presentation'); h.textContent = `${g}（${ks.length}）`; L.appendChild(h);
+    for (const k of ks) {
+      const p = PRESETS[k], [t, s] = pSplit(p.name), [bc, bt] = pBadge(p), d = document.createElement('div');
+      d.className = 'pk-i' + (k === presetKey ? ' cur' : ''); d.id = 'pki' + pk.items.length; d.dataset.i = pk.items.length; d.setAttribute('role', 'option'); d.setAttribute('aria-selected', k === presetKey);
+      d.innerHTML = `<span class="pk-t">${esc(t)}</span><span class="pk-s">${esc(s)}</span><span class="pk-b ${bc}">${esc(bt)}</span>`;
+      L.appendChild(d); pk.items.push(k);
+    }
+  }
+  if (!toks.length || 'カスタム json'.includes(toks[0])) {   // JSON 読込への入口（読み込み済みなら上の「カスタム」に出る）
+    const d = document.createElement('div'); d.className = 'pk-i'; d.id = 'pki' + pk.items.length; d.dataset.i = pk.items.length; d.setAttribute('role', 'option'); d.setAttribute('aria-selected', false);
+    d.innerHTML = '<span class="pk-t">JSON から読み込む…</span><span class="pk-s">解析ツールの出力や書き出した形式データ</span><span></span>'; L.appendChild(d); pk.items.push('__json');
+  }
+  if (!pk.items.length) L.innerHTML = '<div class="pk-none">見つかりません（形式名・メーカー・GTO/IGBT/SiC・直流 などで探せます）</div>';
+  document.querySelectorAll('.pk-view button').forEach(b => b.classList.toggle('on', b.dataset.v === pk.view));
+  pkAct(toks.length ? 0 : Math.max(0, pk.items.indexOf(presetKey, rc.length)), true);   // 開いた直後は今の形式（「最近」でなく本来の欄）に合わせる
+}
+function pkAct(i, center, mouse) {
+  const L = $('pkList'); L.querySelectorAll('.pk-i.act').forEach(d => d.classList.remove('act'));
+  pk.act = pk.items.length ? (i + pk.items.length) % pk.items.length : -1;
+  const d = $('pki' + pk.act); if (!d) return $('pkQ').removeAttribute('aria-activedescendant');
+  d.classList.add('act'); $('pkQ').setAttribute('aria-activedescendant', d.id);
+  if (center) L.scrollTop = d.offsetTop - L.clientHeight / 2; else if (!mouse) d.scrollIntoView({ block: 'nearest' });   // マウスで指したときは動かさない（見出しの下の行でスクロールが起きて一覧が揺れる）
+}
+function pkChoose(i) {
+  const k = pk.items[i]; if (!k) return;
+  pkShow(false);
+  if (k === '__json') { const dt = $('json').closest('details'); dt.open = true; dt.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (k !== presetKey) selectPreset(k);
+}
+function presetStep(d) { const ks = Object.keys(PRESETS).filter(k => k !== 'custom'), i = ks.indexOf(presetKey); selectPreset(ks[((i < 0 ? (d > 0 ? -1 : 0) : i) + d + ks.length) % ks.length]); }
+$('presetBtn').onclick = () => pkShow(!pkOpen());
+$('presetPrev').onclick = () => presetStep(-1); $('presetNext').onclick = () => presetStep(1);
+$('pkClose').onclick = () => pkShow(false);
+$('pkQ').oninput = pkRender;
+$('pkQ').onkeydown = e => {
+  if (e.isComposing || e.keyCode === 229) return;   // 日本語入力の変換中の Enter・矢印は IME に任せる（Safari は確定の Enter を keyCode 229 で送る）
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') pkAct(pk.act + (e.key === 'ArrowDown' ? 1 : -1));
+  else if (e.key === 'Enter') pkChoose(pk.act);
+  else if (e.key === 'Escape') pkShow(false);
+  else return;
+  e.preventDefault();
+};
+document.querySelectorAll('.pk-view button').forEach(b => b.onclick = () => { pk.view = b.dataset.v; lsSet('rss.view', pk.view); pkRender(); });
+$('pkList').onclick = e => { const d = e.target.closest('.pk-i'); if (d) pkChoose(+d.dataset.i); };
+$('pkList').onmousemove = e => { const d = e.target.closest('.pk-i'); if (d && +d.dataset.i !== pk.act) pkAct(+d.dataset.i, false, true); };
+document.addEventListener('pointerdown', e => { if (pkOpen() && !$('presetBox').contains(e.target)) pkShow(false); });
+$('pk').onmousedown = e => { if (e.target !== $('pkQ') && matchMedia('(hover:hover)').matches) e.preventDefault(); };   // 一覧・並べ方ボタンを押しても検索欄のフォーカスを保つ（↑↓・Enter が効き続ける）
+$('presetBox').addEventListener('focusout', e => { if (pkOpen() && e.relatedTarget && !$('presetBox').contains(e.relatedTarget)) pkShow(false); });   // Tab で外へ出たら閉じる
+const hashKey = () => { try { const k = decodeURIComponent(location.hash.slice(1)); return k !== 'custom' && Object.prototype.hasOwnProperty.call(PRESETS, k) ? k : null; } catch (e) { return null; } };   // 壊れた URL（%E0 など）や #constructor でも落ちない
+addEventListener('hashchange', () => { const k = hashKey(); if (k && k !== presetKey) selectPreset(k); });
+function presetUI(k) {   // ボタンの表示・最近使った形式・前回の形式・URL を今の形式に合わせる
+  const [t, s] = pSplit(preset.name); $('presetName').textContent = t; $('presetSub').textContent = s; $('presetBtn').title = `${preset.name}（クリックで形式を選ぶ・キー F）`;
+  if (k !== 'custom') { recent = [k].concat(recent.filter(x => x !== k)).slice(0, 4); lsSet('rss.recent', JSON.stringify(recent)); lsSet('rss.last', k); }
+  if (pkOpen()) pkRender();   // 一覧を開いたまま ‹ › で変えたときも強調を合わせる
+  if (k === 'custom') { $('presetName').textContent = 'カスタム'; $('presetSub').textContent = preset.name; if (location.hash) try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { } return; }
+  if (location.hash.slice(1) !== k) try { history.replaceState(null, '', '#' + k); } catch (e) { }   // file:// でも落ちないように
+}
 function selectPreset(k, obj) {
   for (const f of ['ebT', 'ebRel', 'hbRem', 'airN', 'pgT', 'relEv', 'bcTref']) delete st[f];   // 前の形式の空気系の一時状態を持ち越さない（relOn は残す: 緩めの途中で「プシュー」が鳴り直さない）
   st.hB = st.hE = st.hP = 0; st.cpRun = st.cpL = st.cpT = 0;   // 運転中の空気圧縮機は新しい形式の起動音から鳴らし直す
-  presetKey = k; preset = obj || PRESETS[k]; $('presetSel').value = k;
-  const isDC = preset.motor === 'DC', isLoco = isDC && preset.dc.type === 'loco', isAE = isDC && preset.dc.type === 'ae', isRes = isDC && preset.dc.type === 'res';
+  presetKey = k; preset = obj || PRESETS[k]; presetUI(k);
+  const isDC = preset.motor === 'DC', isLoco = isDC && preset.dc.type === 'loco', isAE = isDC && preset.dc.type === 'ae', isRes = isDC && preset.dc.type === 'res', isCH = isDC && preset.dc.type === 'ch';
   if (isDC) VEH.dcPlan(preset);
   [['r_f1', 'インバータ周波数 f1', '電機子電流（限流値比）', '電機子電流（定格比）'], ['r_fc', 'キャリア周波数', '界磁（全界磁比）', '界磁（弱め界磁）'], ['r_m', '変調率', '界磁チョッパ', 'ブロアー'], ['modeBadge', '変調モード', '制御段', '制御段（ノッチ）']]
     .forEach(([id, a, b, c]) => { $(id).previousElementSibling.textContent = isLoco || isRes ? c : isDC ? b : a; });
   if (isAE) { $('r_fc').previousElementSibling.textContent = '界磁率'; $('r_m').previousElementSibling.textContent = '添加励磁'; }
+  if (isCH) $('r_m').previousElementSibling.textContent = '電機子チョッパ';
   $('blwBtn').style.display = preset.blower ? '' : 'none';
   const dq = preset.dc;
-  $('info').innerHTML = `<b>${esc(preset.name)}</b>　${esc(preset.device)} ${isLoco ? `直列${dq.ser}・直並列${dq.sp}・並列${dq.par}段（バーニア×${dq.vern}）＋弱め界磁F1〜F${dq.wf.length}　直流直巻電動機` : isRes ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段・弱め界磁${dq.wf.length}段（計${dq.ser + dq.par + dq.wf.length}段、最弱${Math.round(dq.wf[dq.wf.length - 1] * 100)}%）　直流直巻電動機` : isAE ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁添加励磁（無段の弱め界磁 100→${Math.round(VEH.aeBeta(dq, dq.phiMin) * 100)}%）　直流直巻電動機` : isDC ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁チョッパ　直流複巻電動機` : `${preset.lv}レベル　${preset.motor === 'PMSM' ? '永久磁石同期電動機' : '誘導電動機'}${preset.poles ? `（${preset.poles}極）` : ''}`} ${esc(preset.ctrl || '1C4M')}　歯車比 ${preset.gear[1]}:${preset.gear[0]} (${VEH.gearRatio(preset).toFixed(2)})　車輪径 ${preset.wheel * 1000}mm　起動加速度 ${isLoco ? (preset.accel * VEH.locoG(dq, dq.Ihi) * dq.Ihi).toFixed(1) : preset.accel}km/h/s<br>
+  $('info').innerHTML = `<b>${esc(preset.name)}</b>　${esc(preset.device)} ${isLoco ? `直列${dq.ser}・直並列${dq.sp}・並列${dq.par}段（バーニア×${dq.vern}）＋弱め界磁F1〜F${dq.wf.length}　直流直巻電動機` : isRes ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段・弱め界磁${dq.wf.length}段（計${dq.ser + dq.par + dq.wf.length}段、最弱${Math.round(dq.wf[dq.wf.length - 1] * 100)}%）　直流直巻電動機` : isAE ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁添加励磁（無段の弱め界磁 100→${Math.round(VEH.aeBeta(dq, dq.phiMin) * 100)}%）　直流直巻電動機` : isCH ? `電機子チョッパ ${dq.fch}Hz×${dq.chN || 2}相（抵抗段なし・通流率制御）＋弱め界磁（最弱${Math.round(dq.phiMin * 100)}%）　直流直巻電動機` : isDC ? `抵抗制御 直列${dq.ser}段・並列${dq.par}段＋界磁チョッパ　直流複巻電動機` : `${preset.lv}レベル　${preset.motor === 'PMSM' ? '永久磁石同期電動機' : '誘導電動機'}${preset.poles ? `（${preset.poles}極）` : ''}`} ${esc(preset.ctrl || '1C4M')}　歯車比 ${preset.gear[1]}:${preset.gear[0]} (${VEH.gearRatio(preset).toFixed(2)})　車輪径 ${preset.wheel * 1000}mm　起動加速度 ${isLoco ? (preset.accel * VEH.locoG(dq, dq.Ihi) * dq.Ihi).toFixed(1) : preset.accel}km/h/s<br>
     信頼度: ${esc(preset.conf)}　出典: ${esc(preset.src)}　${esc(preset.note || '')}<br>
     ${isLoco || isRes ? '発電ブレーキ' : '回生パターン'}: ${preset.bsegs ? '' : '（資料なし・力行と同じ）'}信頼度 ${esc(preset.bconf || '-')}　${esc(preset.bnote || '')}<br>
     空気系: ${esc(airTxt(preset.air))}`;
@@ -2082,18 +2521,30 @@ function mutedNote(g, label, key) {
 }
 $('cpBtn').onclick = () => { if (!st.cpOn) st.mr = Math.min(st.mr, 0.879); mutedNote('cp', '空気圧縮機', 6); };
 function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-$('presetSel').onchange = e => { if (e.target.value === 'custom') { $('json').closest('details').open = true; return; } selectPreset(e.target.value); };
-$('posSel').onchange = e => { posKey = e.target.value; if (posKey === 'platform') listenerX = st.x; applyPos(); };
+/* 聴取位置・音のON/OFF・ミキサー・線路の設定はブラウザに覚えておき、次に開いたときも同じにする（「既定に戻す」で settings.js の既定値へ） */
+const MUTE0 = Object.assign({}, mute);
+function saveSet() { lsSet('rss.set', JSON.stringify({ pos: posKey, mute, lev, joint: $('jointChk').checked })); }
+function syncSetUI() {
+  $('posSel').value = posKey; $('jointChk').checked = syncSetUI.joint !== false;
+  document.querySelectorAll('.tg').forEach(b => b.classList.toggle('off', !!mute[b.dataset.g]));
+  $('mix').querySelectorAll('input').forEach(i => { i.value = lev[i.dataset.k]; });
+}
+try { const s = JSON.parse(lsGet('rss.set') || 'null');
+  if (s) { if (Object.prototype.hasOwnProperty.call(POS, s.pos)) posKey = s.pos; for (const g in GROUPS) if (s.mute && g in s.mute) mute[g] = !!s.mute[g]; for (const [k] of MIX) if (s.lev && isFinite(s.lev[k])) lev[k] = +s.lev[k]; syncSetUI.joint = s.joint; }
+} catch (e) { }
+$('posSel').onchange = e => { posKey = e.target.value; if (posKey === 'platform') listenerX = st.x; applyPos(); saveSet(); e.target.blur(); };   // 選んだらフォーカスを外す（残ると ↑↓ でマスコンを動かせない）
 $('standHere').onclick = () => { listenerX = st.x; };
 $('standAhead').onclick = () => { listenerX = st.x + 500; };
-$('jointChk').onchange = applyLev; $('blepChk').onchange = applyLev;
+$('jointChk').onchange = () => { applyLev(); saveSet(); }; $('blepChk').onchange = applyLev;
 $('blwBtn').onclick = () => { st.blwSw = st.blwSw === 0 ? 1 : 0; $('blwBtn').textContent = `ブロアー スイッチ: ${st.blwSw ? '入' : '切'}`; $('blwBtn').classList.toggle('on', !!st.blwSw); mutedNote('blower', 'ブロアー', 7); };
-function toggleGroup(g) { mute[g] = !mute[g]; document.querySelector(`.tg[data-g="${g}"]`).classList.toggle('off', !!mute[g]); applyLev(); }
+function toggleGroup(g) { mute[g] = !mute[g]; document.querySelector(`.tg[data-g="${g}"]`).classList.toggle('off', !!mute[g]); applyLev(); saveSet(); }
 document.querySelectorAll('.tg').forEach(b => b.onclick = () => toggleGroup(b.dataset.g));
-MIX.forEach(([k, label, def]) => {
-  const l = document.createElement('label'); l.innerHTML = `<span>${label}</span><input type="range" min="0" max="${k === 'mag' || k === 'reverb' ? 2 : 1.5}" step="0.01" value="${def}">`;
-  l.querySelector('input').oninput = e => { lev[k] = +e.target.value; applyLev(); }; $('mix').appendChild(l);
+MIX.forEach(([k, label]) => {
+  const l = document.createElement('label'); l.innerHTML = `<span>${label}</span><input type="range" min="0" max="${k === 'mag' || k === 'reverb' ? 2 : 1.5}" step="0.01" data-k="${k}">`;
+  l.querySelector('input').oninput = e => { lev[k] = +e.target.value; applyLev(); }; l.querySelector('input').onchange = saveSet; $('mix').appendChild(l);
 });
+syncSetUI();
+$('mixReset').onclick = () => { Object.assign(mute, MUTE0); for (const g in GROUPS) if (!(g in MUTE0)) mute[g] = false; MIX.forEach(([k, , def]) => lev[k] = def); syncSetUI.joint = true; syncSetUI(); applyLev(); saveSet(); };
 $('startBtn').onclick = async () => {
   if (eng.ctx && eng.ctx.state === 'running') { await eng.ctx.suspend(); $('startBtn').textContent = '▶ 音を出す'; $('startBtn').classList.remove('running'); return; }
   await startAudio(); const r = eng.ctx.state === 'running'; $('startBtn').textContent = r ? '■ 消音' : '▶ 音を出す'; $('startBtn').classList.toggle('running', r);   // iPhone は resume しても interrupted のまま返ることがある
@@ -2120,14 +2571,21 @@ $('jsonLoad').onclick = () => {
       p.segs = o.segs.map(s => Object.assign({}, s)).sort((a, b) => a.f - b.f); p.segs[0].f = 0;
       p.bsegs = Array.isArray(o.bsegs) && o.bsegs.length ? o.bsegs.map(s => Object.assign({}, s)).sort((a, b) => a.f - b.f) : undefined;
     }
-    PRESETS.custom = p; selectPreset('custom', p); $('jsonMsg').textContent = '読み込みました';
+    const prev = presetKey, txt = $('json').value; try { selectPreset('custom', p); } catch (e) { selectPreset(prev); $('json').value = txt; throw e; }   // 貼った JSON は消さない   // 途中で失敗したら前の形式に戻す
+    PRESETS.custom = p; $('jsonMsg').textContent = '読み込みました';   // 読めなかった形式は一覧に残さない
   } catch (e) { $('jsonMsg').textContent = 'エラー: ' + e.message; }
 };
 addEventListener('keydown', e => {
-  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' && e.target.type !== 'range' && e.target.type !== 'checkbox') return;
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' && e.target.type !== 'range' && e.target.type !== 'checkbox') return;   // SELECT: 聴取位置の ↑↓ とマスコンが同時に動いていた
   if (e.ctrlKey || e.metaKey || e.altKey) return;   // Ctrl+C などのショートカットを奪わない
+  if (pkOpen()) {   // 一覧が開いている間は一覧の操作だけ（フォーカスが検索欄の外にあっても効く）
+    if (e.key === 'Escape') pkShow(false); else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') pkAct(pk.act + (e.key === 'ArrowDown' ? 1 : -1)); else if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') pkChoose(pk.act); else return;
+    e.preventDefault(); return;
+  }
   const k = e.key;
-  if (k === 'ArrowUp') { stopDemo(); setNotch(st.notch === -8 ? -7 : st.notch + 1); }
+  if (k === 'f' || k === 'F' || k === '/') pkShow(true);
+  else if (k === '[' || k === ']') presetStep(k === ']' ? 1 : -1);
+  else if (k === 'ArrowUp') { stopDemo(); setNotch(st.notch === -8 ? -7 : st.notch + 1); }
   else if (k === 'ArrowDown') { stopDemo(); setNotch(st.notch - 1); }
   else if (k === 'n' || k === 'N' || k === ' ') { stopDemo(); setNotch(0); }
   else if (k === 'e' || k === 'E') { stopDemo(); setNotch(-8); }
@@ -2163,6 +2621,8 @@ function dcLabel(d) {
       d.ph === 'br' ? `渡り（${['S→SP', 'SP→P', ''][d.c]}）` : d.ph === 'wf' ? `P 弱め界磁 F${d.k}（${Math.round(d.phi * 100)}%）` : d.ph === 'db' ? `発電 ${d.k}/${q.db}` :
       d.air ? '空気（発電失効）' : st.kmh > 0 ? '惰行' : '停止';
   }
+  if (d.ch) return d.ph === 'ch' ? `チョッパ 通流率 ${Math.round(d.d * 100)}%` : d.ph === 'full' ? '全界磁（通流率100%）' : d.ph === 'wf' ? `弱め界磁 ${Math.round(d.phi * 100)}%` :
+    d.ph === 'rg' ? `回生 通流率 ${Math.round(d.d * 100)}%` : d.ph === 'rgR' ? '回生（抵抗挿入）' : d.air ? '空気（回生失効）' : st.kmh > 0 ? '惰行' : '停止';
   if (d.res) return d.ph === 'ser' ? `直列 ${d.k}/${q.ser}` : d.ph === 'br' ? '渡り（直列→並列）' : d.ph === 'par' ? `並列 ${d.k}/${q.par}` :
     d.ph === 'wf' ? `弱め界磁 ${d.k}/${q.wf.length}（${Math.round(d.phi * 100)}%）` : d.ph === 'db' ? `発電 ${d.k}/${q.db}` : d.air ? '空気（発電失効）' : st.kmh > 0 ? '惰行' : '停止';
   if (d.ae) return d.ph === 'ser' ? `直列 ${d.k}/${q.ser}` : d.ph === 'br' ? '渡り（直列→並列）' : d.ph === 'par' ? `並列 ${d.k}/${q.par}` :
@@ -2170,8 +2630,8 @@ function dcLabel(d) {
   return d.ph === 'ser' ? `直列 ${d.k}/${q.ser}` : d.ph === 'br' ? '渡り（直列→並列）' : d.ph === 'par' ? `並列 ${d.k}/${q.par}` :
     d.ph === 'wf' ? `弱め界磁 ${Math.round(d.phi * 100)}%` : d.ph === 'rg' ? `回生 ${d.k}/${q.rg}` : d.air ? '空気（回生失効）' : st.kmh > 0 ? '惰行' : '停止';
 }
-const DC_COL = { ser: '#81c784', br: '#e6edf3', par: '#ffb74d', wf: '#ba68c8', rg: '#ef5350', off: '#8b98a8', sp: '#4fc3f7', db: '#ef5350', rgP: '#ef5350', rgS: '#f06292' };
-MODE_COL.sp = '#4fc3f7'; MODE_COL.db = '#ef5350'; MODE_COL.rgP = '#ef5350'; MODE_COL.rgS = '#f06292';
+const DC_COL = { ser: '#81c784', br: '#e6edf3', par: '#ffb74d', wf: '#ba68c8', rg: '#ef5350', off: '#8b98a8', sp: '#4fc3f7', db: '#ef5350', rgP: '#ef5350', rgS: '#f06292', ch: '#4fc3f7', full: '#ffb74d', rgR: '#f06292' };
+MODE_COL.ch = '#4fc3f7'; MODE_COL.rgR = '#f06292'; MODE_COL.sp = '#4fc3f7'; MODE_COL.db = '#ef5350'; MODE_COL.rgP = '#ef5350'; MODE_COL.rgS = '#f06292';
 /* ブロアーの状態: 回転比 r と入/切 */
 function blowerTxt(b) {
   const one = (on, r) => on ? (r < 0.97 ? `起動中 ${Math.round(r * 100)}%` : '運転') : (r > 0.02 ? `停止中 ${Math.round(r * 100)}%` : '停止');
@@ -2194,6 +2654,14 @@ function drawPatternDC(g, W, fm) {
     g.save(); g.beginPath(); g.rect(0, 62, xF, h); g.clip(); g.fillStyle = '#8b98a8'; g.fillText('空気', 8, 62 + h / 2); g.restore();
     band(62, xF, xT, MODE_COL.db, `発電ブレーキ ${q.db}段（${preset.fade}km/hで失効・抵抗器で熱に）`); band(62, xT, W, MODE_COL.db, '発電 1段');
     ticks(62, bsegs, '#e6edf3aa');
+    return;
+  }
+  if (D.ch) {   // 電機子チョッパ: 通流率制御（抵抗段なし）→ 弱め界磁、下段は昇圧チョッパの回生（201系は高速で抵抗挿入）
+    const q = D.q, xW = X(grp('wf')[0].f), xF = X(bsegs[0].f), xR = bsegs[1] ? X(bsegs[1].f) : W;
+    band(8, 0, xW, MODE_COL.ch, `チョッパ ${q.fch}Hz×${q.chN || 2}相（通流率 ${Math.round(q.Ra * 100)}→${Math.round(q.dMax * 100)}%・定電流）`); band(8, xW, W, MODE_COL.wf, `弱め界磁（→${Math.round(q.phiMin * 100)}%）`);
+    g.fillStyle = '#ffffff10'; g.fillRect(0, 62, xF, h);
+    g.save(); g.beginPath(); g.rect(0, 62, xF, h); g.clip(); g.fillStyle = '#8b98a8'; g.fillText('空気', 8, 62 + h / 2); g.restore();
+    band(62, xF, xR, MODE_COL.rg, `回生（昇圧チョッパ、${preset.fade}km/hで失効）`); if (bsegs[1]) band(62, xR, W, MODE_COL.rgR, `抵抗挿入 ${q.rgRes}km/h〜`);
     return;
   }
   const xP = X(grp('par')[0].f), xW = X(grp('wf')[0].f);
@@ -2298,6 +2766,7 @@ function drawReadout() {
     $('r_fc').innerHTML = `${Math.round(d.phi * 100)}<i>%</i>`;
     if (d.loco || d.res) { $('r_fc').innerHTML = d.phi < 0.999 ? `${Math.round(d.phi * 100)}<i>%（F${Math.max(1, d.k)}）</i>` : `100<i>%（全界磁）</i>`;
       $('r_m').textContent = inf.blw ? blowerTxt(inf.blw) : '—'; $('r_m').style.fontSize = '15px'; }
+    else if (d.ch) { $('r_m').textContent = d.fch ? `動作 ${Math.round(d.chHz)}Hz 通流率${Math.round(d.d * 100)}%` : '停止'; $('r_m').style.fontSize = '15px'; }
     else if (d.ae) { $('r_m').textContent = d.fch ? `動作（磁束 ${Math.round(d.flux * 100)}%）` : '停止'; $('r_m').style.fontSize = '15px'; }
     else { $('r_m').textContent = d.fch ? `動作 ${preset.dc.fch}Hz` : '停止'; $('r_m').style.fontSize = ''; }
   } else {
@@ -2316,14 +2785,14 @@ function drawReadout() {
   $('r_cp').textContent = `${st.cpOn ? '運転中' : '停止'}（元空気だめ ${Math.round(st.mr * 880)}kPa）`;
   $('r_st').textContent = st.notch === -8 ? '非常ブレーキ' : st.torq > 0.003 ? '力行' : st.torq < -0.003 ? (inf.dc && (inf.dc.loco || inf.dc.res) ? '発電ブレーキ' : '回生ブレーキ') + (st.airB > 0.3 ? '＋空気' : '') : st.notch < 0 ? (st.kmh > 0 ? (inf.dc && (inf.dc.loco || inf.dc.res) ? '空気ブレーキ（発電失効）' : '空気ブレーキ（回生失効）') : '停車') : st.kmh > 0 ? (inf.dc ? '惰行（主回路開放）' : '惰行（ゲートオフ）') : '停車';
 }
-// [app/boot.js] 起動: 描画ループを回し、既定の形式(E233系)を選ぶ。必ず最後に連結する
+// [app/boot.js] 起動: 描画ループを回し、最初の形式（URL の #キー → 前回 → E233系）を選ぶ。必ず最後に連結する
 let lastFrame = 0;
 function draw() { lastFrame = performance.now(); drawGauge(); drawPatternMarker(); drawSpec(); drawReadout(); }
 function frame() { draw(); requestAnimationFrame(frame); }
 setInterval(() => { if (performance.now() - lastFrame > 250) draw(); }, 100);   // rAFが止まる環境向けの保険
 { const mq = matchMedia('(max-width:600px)'), fit = () => { const w = mq.matches ? 560 : 1600; if ($('pattern').width !== w) { $('pattern').width = $('spec').width = w; if (preset) drawPattern(); } };   // スマホ: 横を詰めて縦と文字を大きく見せる（1600pxのままだと高さ30〜50px に潰れる）。画面の回転でも直す
   fit(); mq.addEventListener ? mq.addEventListener('change', fit) : mq.addListener(fit); }
-selectPreset('e233');
+selectPreset([hashKey(), lsGet('rss.last')].find(k => k && k !== 'custom' && Object.prototype.hasOwnProperty.call(PRESETS, k)) || 'e233');   // URL の #キー → 前回の形式 → E233系
 requestAnimationFrame(frame);
 </script>
 </body>
